@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Café Analog</string>
+    <string name="closed_analog">Analog er LUKKET</string>
+    <string name="error_download">Fejl under download</string>
+    <string name="is_open_analog">Er Café Analog Åben?</string>
+    <string name="open_analog">Analog er ÅBEN</string>
+    <string name="widget_closed_analog">CLØSED</string>
+    <string name="widget_open_analog">ÅPEN</string>
+</resources>

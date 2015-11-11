@@ -1,0 +1,9 @@
+<resources>
+    <string name="app_name">Café Analog</string>
+    <string name="is_open_analog">Is Café Analog Open?</string>
+    <string name="open_analog">Analog is ÅPEN</string>
+    <string name="closed_analog">Analog is CLØSED</string>
+    <string name="error_download">Error during download</string>
+    <string name="widget_open_analog">ÅPEN</string>
+    <string name="widget_closed_analog">CLØSED</string>
+</resources>
