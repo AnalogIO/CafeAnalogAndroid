@@ -2,6 +2,7 @@ package dk.cafeanalog;
 
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.AppCompatTextView;
 import android.util.TypedValue;
@@ -12,7 +13,7 @@ import android.widget.TextSwitcher;
 public class MainActivity extends AppCompatActivity {
 
     private TextSwitcher view;
-    private Communicator.AnalogTask task;
+    private AnalogActivityTask task;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -37,13 +38,13 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 AppCompatTextView tv = (AppCompatTextView) view.getNextView();
-                tv.setTextColor(getResources().getColor(android.R.color.primary_text_dark));
-                view.setText(getString(R.string.refreshing_analog));
-                if (task.getStatus() != AsyncTask.Status.FINISHED) {
-                    task.cancel(true);
+
+                if (task == null || task.getStatus() == AsyncTask.Status.FINISHED) {
+                    tv.setTextColor(getResources().getColor(android.R.color.primary_text_dark));
+                    view.setText(getString(R.string.refreshing_analog));
+                    task = new AnalogActivityTask(view, 300);
+                    task.execute();
                 }
-                task = new AnalogActivityTask(500);
-                task.execute();
             }
         });
     }
@@ -57,38 +58,43 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        if (task != null && task.getStatus() != AsyncTask.Status.FINISHED) {
-            task.cancel(true);
+        if (task == null || task.getStatus() == AsyncTask.Status.FINISHED) {
+            task = new AnalogActivityTask(view, 700);
+            task.execute();
         }
-        task = new AnalogActivityTask(1000);
-        task.execute();
     }
 
-    private class AnalogActivityTask extends Communicator.AnalogTask {
-        public AnalogActivityTask(long timeout) {
+    private static class AnalogActivityTask extends Communicator.AnalogTask {
+        public AnalogActivityTask(final TextSwitcher view, final long timeout) {
             super(
                     new Communicator.Runnable<Boolean>() {
                         @Override
-                        public void run(Boolean param) {
-                            if (view != null) { // The user might exit the application without waiting for response.
-                                AppCompatTextView tv = (AppCompatTextView) view.getNextView();
-                                if (param) {
-                                    tv.setTextColor(getResources().getColor(android.R.color.holo_green_light));
-                                    view.setText(getResources().getText(R.string.open_analog));
-                                } else {
-                                    tv.setTextColor(getResources().getColor(android.R.color.holo_red_light));
-                                    view.setText(getResources().getText(R.string.closed_analog));
+                        public void run(final Boolean param) {
+                            Handler handler = new Handler();
+                            handler.postDelayed(new java.lang.Runnable() {
+                                @Override
+                                public void run() {
+                                    if (view != null) { // The user might exit the application without waiting for response.
+                                        AppCompatTextView tv = (AppCompatTextView) view.getNextView();
+                                        if (param) {
+                                            tv.setTextColor(view.getContext().getResources().getColor(android.R.color.holo_green_light));
+                                            view.setText(view.getContext().getResources().getText(R.string.open_analog));
+                                        } else {
+                                            tv.setTextColor(view.getContext().getResources().getColor(android.R.color.holo_red_light));
+                                            view.setText(view.getContext().getResources().getText(R.string.closed_analog));
+                                        }
+                                    }
                                 }
-                            }
+                            }, timeout);
                         }
                     },
                     new Runnable() {
                         @Override
                         public void run() {
-                            view.setText(getResources().getString(R.string.error_download));
+                            if (view != null)
+                                view.setText(view.getContext().getResources().getString(R.string.error_download));
                         }
-                    },
-                    timeout
+                    }
             );
         }
     }

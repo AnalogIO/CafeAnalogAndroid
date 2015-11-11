@@ -6,6 +6,8 @@ import android.appwidget.AppWidgetProvider;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.os.Handler;
+import android.util.Log;
 import android.widget.RemoteViews;
 
 /**
@@ -16,42 +18,7 @@ public class AnalogWidget extends AppWidgetProvider {
 
     @Override
     public void onUpdate(final Context context, final AppWidgetManager appWidgetManager, final int[] appWidgetIds) {
-        final RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.analog_widget);
-        new Communicator.AnalogTask(
-                new Communicator.Runnable<Boolean>() {
-                    @Override
-                    public void run(Boolean param) {
-                        CharSequence widgetText;
-                        if (param) {
-                            widgetText = context.getString(R.string.widget_open_analog);
-                            views.setTextColor(R.id.appwidget_text, context.getResources().getColor(android.R.color.holo_green_light));
-
-                        } else {
-                            widgetText = context.getString(R.string.widget_closed_analog);
-                            views.setTextColor(R.id.appwidget_text, context.getResources().getColor(android.R.color.holo_red_light));
-                        }
-
-                        views.setTextViewText(R.id.appwidget_text, widgetText);
-                        // Instruct the widget manager to update the widget
-                        for (int appWidgetId : appWidgetIds) {
-                            appWidgetManager.updateAppWidget(appWidgetId, views);
-                        }
-                    }
-                },
-                new Runnable() {
-                    @Override
-                    public void run() {
-                        views.setTextViewText(R.id.appwidget_text, "Error");
-                        // Instruct the widget manager to update the widget
-                        for (int appWidgetId : appWidgetIds) {
-                            appWidgetManager.updateAppWidget(appWidgetId, views);
-                        }
-                    }
-                },
-                0
-        ).execute();
-
-        views.setOnClickPendingIntent(R.id.appwidget_text, getPendingSelfIntent(context));
+        new AnalogWidgetTask(context).execute();
     }
 
     @Override
@@ -59,50 +26,74 @@ public class AnalogWidget extends AppWidgetProvider {
         super.onReceive(context, intent);
 
         if (SYNC_CLICKED.equals(intent.getAction())) {
-            final AppWidgetManager appWidgetManager = AppWidgetManager.getInstance(context);
-            final int[] appWidgetIds = appWidgetManager.getAppWidgetIds(new ComponentName(context, AnalogWidget.class));
-            final RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.analog_widget);
+            new AnalogWidgetTask(context).execute();
+        }
+    }
 
-            new Communicator.AnalogTask(
+    private static PendingIntent getPendingSelfIntent(Context context) {
+        Intent intent = new Intent(context, AnalogWidget.class);
+        intent.setAction(SYNC_CLICKED);
+        return PendingIntent.getBroadcast(context, 0, intent, 0);
+    }
+
+    private class AnalogWidgetTask extends Communicator.AnalogTask {
+        public AnalogWidgetTask(final Context context) {
+            super(
                     new Communicator.Runnable<Boolean>() {
                         @Override
-                        public void run(Boolean param) {
-                            CharSequence widgetText;
-                            if (param) {
-                                widgetText = context.getString(R.string.widget_open_analog);
-                                views.setTextColor(R.id.appwidget_text, context.getResources().getColor(android.R.color.holo_green_light));
-
-                            } else {
-                                widgetText = context.getString(R.string.widget_closed_analog);
-                                views.setTextColor(R.id.appwidget_text, context.getResources().getColor(android.R.color.holo_red_light));
-                            }
-
+                        public void run(final Boolean param) {
+                            final AppWidgetManager appWidgetManager = AppWidgetManager.getInstance(context);
+                            final int[] appWidgetIds = appWidgetManager.getAppWidgetIds(new ComponentName(context, AnalogWidget.class));
+                            final RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.analog_widget);
+                            CharSequence widgetText = context.getText(R.string.refreshing_analog);
+                            Log.i("AnalogWidget", "Fetching");
                             views.setTextViewText(R.id.appwidget_text, widgetText);
+                            views.setTextColor(R.id.appwidget_text, context.getResources().getColor(android.R.color.primary_text_dark));
                             // Instruct the widget manager to update the widget
                             for (int appWidgetId : appWidgetIds) {
                                 appWidgetManager.updateAppWidget(appWidgetId, views);
                             }
+
+                            Handler handler = new Handler();
+                            handler.postDelayed(new Runnable() {
+                                @Override
+                                public void run() {
+                                    CharSequence widgetText;
+                                    if (param) {
+                                        widgetText = context.getString(R.string.widget_open_analog);
+                                        views.setTextColor(R.id.appwidget_text, context.getResources().getColor(android.R.color.holo_green_light));
+
+                                    } else {
+                                        widgetText = context.getString(R.string.widget_closed_analog);
+                                        views.setTextColor(R.id.appwidget_text, context.getResources().getColor(android.R.color.holo_red_light));
+                                    }
+
+                                    views.setTextViewText(R.id.appwidget_text, widgetText);
+                                    views.setOnClickPendingIntent(R.id.appwidget_text, getPendingSelfIntent(context));
+                                    // Instruct the widget manager to update the widget
+                                    for (int appWidgetId : appWidgetIds) {
+                                        appWidgetManager.updateAppWidget(appWidgetId, views);
+                                    }
+                                }
+                            }, 500);
                         }
                     },
                     new Runnable() {
                         @Override
                         public void run() {
+                            AppWidgetManager appWidgetManager = AppWidgetManager.getInstance(context);
+                            RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.analog_widget);
+                            int[] appWidgetIds = appWidgetManager.getAppWidgetIds(new ComponentName(context, AnalogWidget.class));
                             views.setTextViewText(R.id.appwidget_text, "Error");
+                            views.setOnClickPendingIntent(R.id.appwidget_text, getPendingSelfIntent(context));
                             // Instruct the widget manager to update the widget
                             for (int appWidgetId : appWidgetIds) {
                                 appWidgetManager.updateAppWidget(appWidgetId, views);
                             }
                         }
-                    },
-                    0
-            ).execute();
+                    }
+            );
         }
-    }
-
-    private PendingIntent getPendingSelfIntent(Context context) {
-        Intent intent = new Intent(context, getClass());
-        intent.setAction(SYNC_CLICKED);
-        return PendingIntent.getBroadcast(context, 0, intent, 0);
     }
 }
 

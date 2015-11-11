@@ -15,12 +15,10 @@ public class Communicator {
     public static class AnalogTask extends AsyncTask<Void, Void, Boolean> {
         private final Runnable<Boolean> mPostExecute;
         private final java.lang.Runnable mCancel;
-        private final long timeout;
 
-        public AnalogTask(Runnable<Boolean> postExecute, java.lang.Runnable cancel, long timeout) {
+        public AnalogTask(Runnable<Boolean> postExecute, java.lang.Runnable cancel) {
             this.mPostExecute = postExecute;
             this.mCancel = cancel;
-            this.timeout = timeout;
         }
 
         @Override
@@ -39,10 +37,9 @@ public class Communicator {
                         builder.append(read);
                     }
                     obj = new JSONObject(builder.toString());
-                    Thread.sleep(timeout, 0);
                     return obj.getBoolean("open");
                 }
-            } catch (IOException | JSONException | InterruptedException e) {
+            } catch (IOException | JSONException e) {
                 e.printStackTrace();
                 cancel(true);
                 return false;
