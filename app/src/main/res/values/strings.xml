@@ -6,4 +6,5 @@
     <string name="error_download">Error during download</string>
     <string name="widget_open_analog">ÅPEN</string>
     <string name="widget_closed_analog">CLØSED</string>
+    <string name="refreshing_analog">Refreshing</string>
 </resources>

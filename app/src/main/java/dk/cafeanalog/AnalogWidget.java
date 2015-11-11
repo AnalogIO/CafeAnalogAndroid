@@ -47,7 +47,8 @@ public class AnalogWidget extends AppWidgetProvider {
                             appWidgetManager.updateAppWidget(appWidgetId, views);
                         }
                     }
-                }
+                },
+                0
         ).execute();
 
         views.setOnClickPendingIntent(R.id.appwidget_text, getPendingSelfIntent(context));
@@ -92,7 +93,8 @@ public class AnalogWidget extends AppWidgetProvider {
                                 appWidgetManager.updateAppWidget(appWidgetId, views);
                             }
                         }
-                    }
+                    },
+                    0
             ).execute();
         }
     }

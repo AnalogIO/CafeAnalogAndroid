@@ -7,4 +7,5 @@
     <string name="open_analog">Analog er ÅBEN</string>
     <string name="widget_closed_analog">CLØSED</string>
     <string name="widget_open_analog">ÅPEN</string>
+    <string name="refreshing_analog">Opdaterer...</string>
 </resources>

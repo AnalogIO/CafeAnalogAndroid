@@ -15,10 +15,12 @@ public class Communicator {
     public static class AnalogTask extends AsyncTask<Void, Void, Boolean> {
         private final Runnable<Boolean> mPostExecute;
         private final java.lang.Runnable mCancel;
+        private final long timeout;
 
-        public AnalogTask(Runnable<Boolean> postExecute, java.lang.Runnable cancel) {
+        public AnalogTask(Runnable<Boolean> postExecute, java.lang.Runnable cancel, long timeout) {
             this.mPostExecute = postExecute;
             this.mCancel = cancel;
+            this.timeout = timeout;
         }
 
         @Override
@@ -37,10 +39,9 @@ public class Communicator {
                         builder.append(read);
                     }
                     obj = new JSONObject(builder.toString());
-                    Thread.sleep(100, 0);
+                    Thread.sleep(timeout, 0);
                     return obj.getBoolean("open");
                 }
-
             } catch (IOException | JSONException | InterruptedException e) {
                 e.printStackTrace();
                 cancel(true);
@@ -62,10 +63,6 @@ public class Communicator {
             super.onCancelled();
             mCancel.run();
         }
-    }
-
-    public static AnalogTask getTask(Runnable<Boolean> onPostExecute, java.lang.Runnable onCancel) {
-        return new AnalogTask(onPostExecute, onCancel);
     }
 
     public interface Runnable<T> {
