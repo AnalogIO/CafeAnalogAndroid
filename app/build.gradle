@@ -5,7 +5,7 @@ android {
     buildToolsVersion "23.0.2"
 
     defaultConfig {
-        applicationId "dk.mikaellindemann.cafeanalog"
+        applicationId "dk.cafeanalog"
         minSdkVersion 19
         targetSdkVersion 23
         versionCode 1

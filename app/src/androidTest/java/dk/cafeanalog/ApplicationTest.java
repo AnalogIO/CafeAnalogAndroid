@@ -1,4 +1,4 @@
-package dk.mikaellindemann.cafeanalog;
+package dk.cafeanalog;
 
 import android.app.Application;
 import android.test.ApplicationTestCase;

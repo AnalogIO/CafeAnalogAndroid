@@ -1,4 +1,4 @@
-package dk.mikaellindemann.cafeanalog;
+package dk.cafeanalog;
 
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
