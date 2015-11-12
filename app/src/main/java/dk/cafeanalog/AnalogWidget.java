@@ -7,6 +7,8 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Handler;
+import android.support.v4.app.NotificationManagerCompat;
+import android.support.v7.app.NotificationCompat;
 import android.util.Log;
 import android.widget.RemoteViews;
 
@@ -42,6 +44,13 @@ public class AnalogWidget extends AppWidgetProvider {
                     new Communicator.Runnable<Boolean>() {
                         @Override
                         public void run(final Boolean param) {
+                            final NotificationCompat.Builder builder = new NotificationCompat.Builder(context);
+                            builder.setSmallIcon(R.drawable.ic_closed_analog);
+                            builder.setContentTitle(context.getText(R.string.app_name));
+                            builder.setContentText(context.getText(R.string.refreshing_analog));
+                            builder.setOngoing(true);
+                            final NotificationManagerCompat manager = NotificationManagerCompat.from(context);
+                            manager.notify(MainActivity.notificationId, builder.build());
                             final AppWidgetManager appWidgetManager = AppWidgetManager.getInstance(context);
                             final int[] appWidgetIds = appWidgetManager.getAppWidgetIds(new ComponentName(context, AnalogWidget.class));
                             final RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.analog_widget);
@@ -68,6 +77,8 @@ public class AnalogWidget extends AppWidgetProvider {
                                         views.setTextColor(R.id.appwidget_text, context.getResources().getColor(android.R.color.holo_red_light));
                                     }
 
+                                    builder.setContentText(context.getText(R.string.is_open_analog));
+                                    manager.notify(MainActivity.notificationId, builder.build());
                                     views.setTextViewText(R.id.appwidget_text, widgetText);
                                     views.setOnClickPendingIntent(R.id.appwidget_text, getPendingSelfIntent(context));
                                     // Instruct the widget manager to update the widget

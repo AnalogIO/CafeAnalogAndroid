@@ -3,7 +3,9 @@ package dk.cafeanalog;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
+import android.support.v4.app.NotificationManagerCompat;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.app.NotificationCompat;
 import android.support.v7.widget.AppCompatTextView;
 import android.util.TypedValue;
 import android.view.Gravity;
@@ -14,10 +16,20 @@ public class MainActivity extends AppCompatActivity {
 
     private TextSwitcher view;
     private AnalogActivityTask task;
+    static final int notificationId = 42584937;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        final NotificationCompat.Builder builder = new NotificationCompat.Builder(this);
+        builder.setSmallIcon(R.drawable.ic_closed_analog);
+        builder.setContentTitle(getText(R.string.app_name));
+        builder.setContentText(getText(R.string.refreshing_analog));
+        builder.setOngoing(true);
+        final NotificationManagerCompat manager = NotificationManagerCompat.from(this);
+        manager.notify(notificationId, builder.build());
+
 
         setContentView(R.layout.activity_main);
         view = (TextSwitcher) findViewById(R.id.text_view);
@@ -42,6 +54,8 @@ public class MainActivity extends AppCompatActivity {
                 if (task == null || task.getStatus() == AsyncTask.Status.FINISHED) {
                     tv.setTextColor(getResources().getColor(android.R.color.primary_text_dark));
                     view.setText(getString(R.string.refreshing_analog));
+                    builder.setContentText(getText(R.string.refreshing_analog));
+                    manager.notify(notificationId, builder.build());
                     task = new AnalogActivityTask(view, 300);
                     task.execute();
                 }
@@ -52,6 +66,8 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onDestroy() {
         view = null;
+        NotificationManagerCompat manager = NotificationManagerCompat.from(this);
+        manager.cancel(notificationId);
         super.onDestroy();
     }
 
@@ -76,13 +92,22 @@ public class MainActivity extends AppCompatActivity {
                                 public void run() {
                                     if (view != null) { // The user might exit the application without waiting for response.
                                         AppCompatTextView tv = (AppCompatTextView) view.getNextView();
+                                        NotificationCompat.Builder builder = new NotificationCompat.Builder(view.getContext());
+                                        builder.setSmallIcon(R.drawable.ic_closed_analog);
+                                        builder.setContentTitle(view.getContext().getText(R.string.app_name));
+                                        builder.setOngoing(true);
+
                                         if (param) {
                                             tv.setTextColor(view.getContext().getResources().getColor(android.R.color.holo_green_light));
                                             view.setText(view.getContext().getResources().getText(R.string.open_analog));
+                                            builder.setContentText(view.getContext().getText(R.string.open_analog));
                                         } else {
                                             tv.setTextColor(view.getContext().getResources().getColor(android.R.color.holo_red_light));
                                             view.setText(view.getContext().getResources().getText(R.string.closed_analog));
+                                            builder.setContentText(view.getContext().getText(R.string.closed_analog));
                                         }
+                                        NotificationManagerCompat manager = NotificationManagerCompat.from(view.getContext());
+                                        manager.notify(notificationId, builder.build());
                                     }
                                 }
                             }, timeout);
