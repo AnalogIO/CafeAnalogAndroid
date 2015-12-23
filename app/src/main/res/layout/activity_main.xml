@@ -7,9 +7,4 @@
     tools:context=".MainActivity"
     android:id="@+id/main_layout">
 
-    <TextSwitcher
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_centerInParent="true"
-        android:id="@+id/text_view" />
 </RelativeLayout>

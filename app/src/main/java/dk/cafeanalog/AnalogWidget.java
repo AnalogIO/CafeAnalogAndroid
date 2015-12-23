@@ -37,13 +37,12 @@ public class AnalogWidget extends AppWidgetProvider {
         return PendingIntent.getBroadcast(context, 0, intent, 0);
     }
 
-    private class AnalogWidgetTask extends Communicator.AnalogTask {
+    private class AnalogWidgetTask extends AnalogTask {
         public AnalogWidgetTask(final Context context) {
             super(
-                    new Communicator.Runnable<Boolean>() {
+                    new Runnable<Boolean>() {
                         @Override
                         public void run(final Boolean param) {
-                            NotificationUtil.setNotification(context, R.string.refreshing_analog, R.drawable.ic_closed_analog);
                             final AppWidgetManager appWidgetManager = AppWidgetManager.getInstance(context);
                             final int[] appWidgetIds = appWidgetManager.getAppWidgetIds(new ComponentName(context, AnalogWidget.class));
                             final RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.analog_widget);
@@ -57,19 +56,16 @@ public class AnalogWidget extends AppWidgetProvider {
                             }
 
                             Handler handler = new Handler();
-                            handler.postDelayed(new Runnable() {
+                            handler.postDelayed(new java.lang.Runnable() {
                                 @Override
                                 public void run() {
                                     CharSequence widgetText;
                                     if (param) {
                                         widgetText = context.getString(R.string.widget_open_analog);
                                         views.setTextColor(R.id.appwidget_text, ContextCompat.getColor(context, android.R.color.holo_green_light));
-                                        NotificationUtil.setNotification(context, R.string.open_analog, R.drawable.ic_closed_analog);
-
                                     } else {
                                         widgetText = context.getString(R.string.widget_closed_analog);
                                         views.setTextColor(R.id.appwidget_text, ContextCompat.getColor(context, android.R.color.holo_red_light));
-                                        NotificationUtil.setNotification(context, R.string.closed_analog, R.drawable.ic_closed_analog);
                                     }
 
                                     views.setTextViewText(R.id.appwidget_text, widgetText);
@@ -82,7 +78,7 @@ public class AnalogWidget extends AppWidgetProvider {
                             }, 500);
                         }
                     },
-                    new Runnable() {
+                    new java.lang.Runnable() {
                         @Override
                         public void run() {
                             AppWidgetManager appWidgetManager = AppWidgetManager.getInstance(context);
