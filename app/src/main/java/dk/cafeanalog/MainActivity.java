@@ -1,15 +1,13 @@
 package dk.cafeanalog;
 
-import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.AppCompatTextView;
 import android.util.TypedValue;
 import android.view.Gravity;
-import android.view.Menu;
-import android.view.MenuItem;
 import android.view.View;
 import android.widget.TextSwitcher;
 
@@ -46,7 +44,7 @@ public class MainActivity extends AppCompatActivity {
                 AppCompatTextView tv = (AppCompatTextView) view.getNextView();
 
                 if (task == null || task.getStatus() == AsyncTask.Status.FINISHED) {
-                    tv.setTextColor(getResources().getColor(android.R.color.primary_text_dark));
+                    tv.setTextColor(ContextCompat.getColor(MainActivity.this, android.R.color.primary_text_dark));
                     view.setText(getString(R.string.refreshing_analog));
                     NotificationUtil.setNotification(MainActivity.this, R.string.refreshing_analog, R.drawable.ic_closed_analog);
                     task = new AnalogActivityTask(view, 300);
@@ -60,22 +58,6 @@ public class MainActivity extends AppCompatActivity {
     protected void onDestroy() {
         view = null;
         super.onDestroy();
-    }
-
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        MenuItem item = menu.add("Settings");
-
-        item.setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
-            @Override
-            public boolean onMenuItemClick(MenuItem item) {
-                Intent intent = new Intent();
-                intent.setClass(MainActivity.this, SettingsActivity.class);
-                startActivity(intent);
-                return true;
-            }
-        });
-        return super.onCreateOptionsMenu(menu);
     }
 
     @Override
@@ -100,11 +82,11 @@ public class MainActivity extends AppCompatActivity {
                                     if (view != null) { // The user might exit the application without waiting for response.
                                         AppCompatTextView tv = (AppCompatTextView) view.getNextView();
                                         if (param) {
-                                            tv.setTextColor(view.getContext().getResources().getColor(android.R.color.holo_green_light));
+                                            tv.setTextColor(ContextCompat.getColor(view.getContext(), android.R.color.holo_green_light));
                                             view.setText(view.getContext().getResources().getText(R.string.open_analog));
                                             NotificationUtil.setNotification(view.getContext(), R.string.open_analog, R.drawable.ic_closed_analog);
                                         } else {
-                                            tv.setTextColor(view.getContext().getResources().getColor(android.R.color.holo_red_light));
+                                            tv.setTextColor(ContextCompat.getColor(view.getContext(), android.R.color.holo_red_light));
                                             view.setText(view.getContext().getResources().getText(R.string.closed_analog));
                                             NotificationUtil.setNotification(view.getContext(), R.string.closed_analog, R.drawable.ic_closed_analog);
                                         }

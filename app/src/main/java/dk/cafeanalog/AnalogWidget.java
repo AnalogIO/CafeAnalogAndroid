@@ -7,6 +7,7 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Handler;
+import android.support.v4.content.ContextCompat;
 import android.util.Log;
 import android.widget.RemoteViews;
 
@@ -49,7 +50,7 @@ public class AnalogWidget extends AppWidgetProvider {
                             CharSequence widgetText = context.getText(R.string.refreshing_analog);
                             Log.i("AnalogWidget", "Fetching");
                             views.setTextViewText(R.id.appwidget_text, widgetText);
-                            views.setTextColor(R.id.appwidget_text, context.getResources().getColor(android.R.color.primary_text_dark));
+                            views.setTextColor(R.id.appwidget_text, ContextCompat.getColor(context, android.R.color.primary_text_dark));
                             // Instruct the widget manager to update the widget
                             for (int appWidgetId : appWidgetIds) {
                                 appWidgetManager.updateAppWidget(appWidgetId, views);
@@ -62,12 +63,12 @@ public class AnalogWidget extends AppWidgetProvider {
                                     CharSequence widgetText;
                                     if (param) {
                                         widgetText = context.getString(R.string.widget_open_analog);
-                                        views.setTextColor(R.id.appwidget_text, context.getResources().getColor(android.R.color.holo_green_light));
+                                        views.setTextColor(R.id.appwidget_text, ContextCompat.getColor(context, android.R.color.holo_green_light));
                                         NotificationUtil.setNotification(context, R.string.open_analog, R.drawable.ic_closed_analog);
 
                                     } else {
                                         widgetText = context.getString(R.string.widget_closed_analog);
-                                        views.setTextColor(R.id.appwidget_text, context.getResources().getColor(android.R.color.holo_red_light));
+                                        views.setTextColor(R.id.appwidget_text, ContextCompat.getColor(context, android.R.color.holo_red_light));
                                         NotificationUtil.setNotification(context, R.string.closed_analog, R.drawable.ic_closed_analog);
                                     }
 
