@@ -1,15 +1,13 @@
 package dk.cafeanalog;
 
 import android.os.AsyncTask;
+import android.util.JsonReader;
 
-import org.json.JSONException;
-import org.json.JSONObject;
-
-import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.Objects;
 
 class AnalogTask extends AsyncTask<Void, Void, Boolean> {
     private final Runnable<Boolean> mPostExecute;
@@ -28,17 +26,12 @@ class AnalogTask extends AsyncTask<Void, Void, Boolean> {
             connection = (HttpURLConnection) url.openConnection();
             connection.setRequestMethod("GET");
             connection.connect();
-            String read;
-            JSONObject obj;
-            try (BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream()))) {
-                StringBuilder builder = new StringBuilder();
-                while ((read = reader.readLine()) != null) {
-                    builder.append(read);
-                }
-                obj = new JSONObject(builder.toString());
-                return obj.getBoolean("open");
+            try (JsonReader reader = new JsonReader(new InputStreamReader(connection.getInputStream()))) {
+                reader.beginObject();
+                while (!Objects.equals(reader.nextName(), "open")) { reader.skipValue(); }
+                return reader.nextBoolean();
             }
-        } catch (IOException | JSONException e) {
+        } catch (IOException e) {
             e.printStackTrace();
             cancel(true);
             return false;
