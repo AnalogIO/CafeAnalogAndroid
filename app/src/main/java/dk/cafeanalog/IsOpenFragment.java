@@ -7,12 +7,17 @@ import android.os.Handler;
 import android.support.v4.app.Fragment;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.widget.AppCompatTextView;
+import android.util.Log;
 import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextSwitcher;
+
+import org.jsoup.nodes.Document;
+
+import java.util.List;
 
 
 /**
@@ -60,6 +65,27 @@ public class IsOpenFragment extends Fragment {
                 }
             }
         });
+
+        new AsyncTask<Void, Void, Void>() {
+            @Override
+            protected Void doInBackground(Void... params) {
+                try {
+                    DocumentDownloader downloader = new DocumentDownloader();
+                    Document page = downloader.DownloadPage();
+                    String names = downloader.GetNames(page);
+                    Log.d("Names", names.isEmpty() ? "No Names" : names);
+                    Iterable<String> openings = downloader.GetOpenings(page);
+                    Log.d("Openings", "Begin");
+                    for (String s : openings) {
+                        Log.d("Openings", s);
+                    }
+                    Log.d("Openings", "End");
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+                return null;
+            }
+        }.execute();
 
         return v;
     }
