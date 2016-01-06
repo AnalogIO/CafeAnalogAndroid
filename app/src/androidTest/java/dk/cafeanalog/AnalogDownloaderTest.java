@@ -10,32 +10,38 @@ import java.io.InputStream;
 
 import dk.cafeanalog.test.R;
 
-public class DocumentDownloaderTests extends InstrumentationTestCase {
-    private DocumentDownloader downloader;
-    private Document document;
+public class AnalogDownloaderTest extends InstrumentationTestCase {
+    private AnalogDownloader downloader;
+    private Document closedNoOpeningsPage;
 
     @Override
     protected void setUp() throws IOException {
-        downloader = new DocumentDownloader();
+        downloader = new AnalogDownloader();
         InputStream inputStream =
                 getInstrumentation()
                         .getContext()
                         .getResources()
                         .openRawResource(R.raw.closed_no_openings);
 
-        document = Jsoup.parse(inputStream, "UTF-8", "http://cafeanalog.dk");
+        closedNoOpeningsPage = Jsoup.parse(inputStream, "UTF-8", "http://cafeanalog.dk");
     }
 
     public void testGetNamesNoNamesReturned() {
-        String names = downloader.GetNames(document);
+        String names = downloader.getNames(closedNoOpeningsPage);
 
         assertTrue(names.isEmpty());
     }
 
     public void testGetOpeningsNoneReturned() {
-        Iterable<String> openings = downloader.GetOpenings(document);
+        Iterable<String> openings = downloader.getOpenings(closedNoOpeningsPage);
 
         assertEquals(0, size(openings));
+    }
+
+    public void testIsOpen_Page() {
+        AnalogDownloader.AnalogStatus status = downloader.isOpen(closedNoOpeningsPage);
+
+        assertEquals(AnalogDownloader.AnalogStatus.CLOSED, status);
     }
 
     private static <T> int size(Iterable<T> iterable) {

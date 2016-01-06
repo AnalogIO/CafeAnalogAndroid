@@ -17,8 +17,6 @@ import android.widget.TextSwitcher;
 
 import org.jsoup.nodes.Document;
 
-import java.util.List;
-
 
 /**
  * A simple {@link Fragment} subclass.
@@ -70,11 +68,11 @@ public class IsOpenFragment extends Fragment {
             @Override
             protected Void doInBackground(Void... params) {
                 try {
-                    DocumentDownloader downloader = new DocumentDownloader();
-                    Document page = downloader.DownloadPage();
-                    String names = downloader.GetNames(page);
+                    AnalogDownloader downloader = new AnalogDownloader();
+                    Document page = downloader.downloadPage();
+                    String names = downloader.getNames(page);
                     Log.d("Names", names.isEmpty() ? "No Names" : names);
-                    Iterable<String> openings = downloader.GetOpenings(page);
+                    Iterable<String> openings = downloader.getOpenings(page);
                     Log.d("Openings", "Begin");
                     for (String s : openings) {
                         Log.d("Openings", s);
