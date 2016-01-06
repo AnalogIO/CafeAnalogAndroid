@@ -5,8 +5,7 @@ import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Iterator;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -17,12 +16,31 @@ public class DocumentDownloader {
         return Jsoup.connect("http://cafeanalog.dk/").get();
     }
 
-    public List<String> GetOpenings(Document page) {
-        List<String> results = new ArrayList<>();
-        for (Element elem : page.getElementById("openingHours").getElementsByTag("li")) {
-            results.add(elem.text());
-        }
-        return results;
+    public Iterable<String> GetOpenings(Document page) {
+        final Iterable<Element> elements = page.getElementById("openingHours").getElementsByTag("li");
+        return new Iterable<String>() {
+            private final Iterator<Element> iterator = elements.iterator();
+
+            @Override
+            public Iterator<String> iterator() {
+                return new Iterator<String>() {
+                    @Override
+                    public boolean hasNext() {
+                        return iterator.hasNext();
+                    }
+
+                    @Override
+                    public String next() {
+                        return iterator.next().text();
+                    }
+
+                    @Override
+                    public void remove() {
+                        iterator.remove();
+                    }
+                };
+            }
+        };
     }
 
     public String GetNames(Document page) {

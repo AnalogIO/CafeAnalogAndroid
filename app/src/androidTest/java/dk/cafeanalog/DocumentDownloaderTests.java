@@ -7,7 +7,6 @@ import org.jsoup.nodes.Document;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.List;
 
 import dk.cafeanalog.test.R;
 
@@ -34,8 +33,16 @@ public class DocumentDownloaderTests extends InstrumentationTestCase {
     }
 
     public void testGetOpeningsNoneReturned() {
-        List<String> openings = downloader.GetOpenings(document);
+        Iterable<String> openings = downloader.GetOpenings(document);
 
-        assertEquals(0, openings.size());
+        assertEquals(0, size(openings));
+    }
+
+    private static <T> int size(Iterable<T> iterable) {
+        int size = 0;
+        for (T ignored : iterable) {
+            size++;
+        }
+        return size;
     }
 }
