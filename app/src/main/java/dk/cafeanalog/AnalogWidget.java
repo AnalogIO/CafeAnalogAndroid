@@ -8,7 +8,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.Handler;
 import android.support.v4.content.ContextCompat;
-import android.util.Log;
 import android.widget.RemoteViews;
 
 /**
@@ -18,12 +17,12 @@ public class AnalogWidget extends AppWidgetProvider {
     private static final String SYNC_CLICKED = "automaticWidgetSyncButtonClick";
 
     @Override
-    public void onUpdate(final Context context, final AppWidgetManager appWidgetManager, final int[] appWidgetIds) {
+    public void onUpdate(Context context, AppWidgetManager appWidgetManager, int[] appWidgetIds) {
         new AnalogWidgetTask(context).execute();
     }
 
     @Override
-    public void onReceive(final Context context, Intent intent) {
+    public void onReceive(Context context, Intent intent) {
         super.onReceive(context, intent);
 
         if (SYNC_CLICKED.equals(intent.getAction())) {
@@ -46,9 +45,7 @@ public class AnalogWidget extends AppWidgetProvider {
                             final AppWidgetManager appWidgetManager = AppWidgetManager.getInstance(context);
                             final int[] appWidgetIds = appWidgetManager.getAppWidgetIds(new ComponentName(context, AnalogWidget.class));
                             final RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.analog_widget);
-                            CharSequence widgetText = context.getText(R.string.refreshing_analog);
-                            Log.i("AnalogWidget", "Fetching");
-                            views.setTextViewText(R.id.appwidget_text, widgetText);
+                            views.setTextViewText(R.id.appwidget_text, context.getText(R.string.refreshing_analog));
                             views.setTextColor(R.id.appwidget_text, ContextCompat.getColor(context, android.R.color.primary_text_dark));
                             // Instruct the widget manager to update the widget
                             for (int appWidgetId : appWidgetIds) {
