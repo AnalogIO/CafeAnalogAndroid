@@ -11,12 +11,11 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.Iterator;
-import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class AnalogDownloader {
-    private Pattern nameRegex = Pattern.compile("On shift right now: ([a-zæøå,&\\s]+)\\n", Pattern.CASE_INSENSITIVE);
+    private static final Pattern nameRegex = Pattern.compile("On shift right now: ([a-zæøå,&\\s]+)\\n", Pattern.CASE_INSENSITIVE);
 
     public Document downloadPage() throws IOException {
         return Jsoup.connect("http://cafeanalog.dk/").get();
@@ -30,22 +29,29 @@ public class AnalogDownloader {
 
     public AnalogStatus isOpen() {
         HttpURLConnection connection = null;
+        JsonReader reader = null;
         try {
             URL url = new URL("http", "cafeanalog.dk", "REST");
             connection = (HttpURLConnection) url.openConnection();
             connection.setRequestMethod("GET");
             connection.connect();
-            try (JsonReader reader = new JsonReader(new InputStreamReader(connection.getInputStream()))) {
-                reader.beginObject();
-                while (!Objects.equals(reader.nextName(), "open")) { reader.skipValue(); }
-                return reader.nextBoolean() ? AnalogStatus.OPEN : AnalogStatus.CLOSED;
-            }
+            reader = new JsonReader(new InputStreamReader(connection.getInputStream()));
+            reader.beginObject();
+            while (!reader.nextName().equals("open")) { reader.skipValue(); }
+            return reader.nextBoolean() ? AnalogStatus.OPEN : AnalogStatus.CLOSED;
         } catch (IOException e) {
             e.printStackTrace();
             return AnalogStatus.UNKNOWN;
         } finally {
             if (connection != null)
                 connection.disconnect();
+            if (reader != null) {
+                try {
+                    reader.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
         }
     }
 
