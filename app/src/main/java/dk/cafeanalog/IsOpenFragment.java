@@ -7,15 +7,12 @@ import android.os.Handler;
 import android.support.v4.app.Fragment;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.widget.AppCompatTextView;
-import android.util.Log;
 import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextSwitcher;
-
-import org.jsoup.nodes.Document;
 
 
 /**
@@ -64,7 +61,7 @@ public class IsOpenFragment extends Fragment {
             }
         });
 
-        new AsyncTask<Void, Void, Void>() {
+        /*new AsyncTask<Void, Void, Void>() {
             @Override
             protected Void doInBackground(Void... params) {
                 try {
@@ -83,7 +80,7 @@ public class IsOpenFragment extends Fragment {
                 }
                 return null;
             }
-        }.execute();
+        }.execute();*/
 
         return v;
     }
