@@ -6,9 +6,12 @@ import android.appwidget.AppWidgetProvider;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.Handler;
 import android.support.v4.content.ContextCompat;
 import android.widget.RemoteViews;
+import android.widget.Toast;
 
 /**
  * Implementation of App Widget functionality.
@@ -18,7 +21,14 @@ public class AnalogWidget extends AppWidgetProvider {
 
     @Override
     public void onUpdate(Context context, AppWidgetManager appWidgetManager, int[] appWidgetIds) {
-        new AnalogWidgetTask(context).execute();
+        ConnectivityManager cm =
+                (ConnectivityManager)context.getSystemService(Context.CONNECTIVITY_SERVICE);
+
+        NetworkInfo activeNetwork = cm.getActiveNetworkInfo();
+
+        if (activeNetwork != null && activeNetwork.isConnected()) {
+            new AnalogWidgetTask(context).execute();
+        }
     }
 
     @Override
@@ -26,7 +36,16 @@ public class AnalogWidget extends AppWidgetProvider {
         super.onReceive(context, intent);
 
         if (SYNC_CLICKED.equals(intent.getAction())) {
-            new AnalogWidgetTask(context).execute();
+            ConnectivityManager cm =
+                    (ConnectivityManager)context.getSystemService(Context.CONNECTIVITY_SERVICE);
+
+            NetworkInfo activeNetwork = cm.getActiveNetworkInfo();
+
+            if (activeNetwork != null && activeNetwork.isConnected()) {
+                new AnalogWidgetTask(context).execute();
+            } else {
+                Toast.makeText(context, "No connection available for refresh", Toast.LENGTH_SHORT).show();
+            }
         }
     }
 

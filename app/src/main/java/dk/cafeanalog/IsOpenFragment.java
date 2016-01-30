@@ -22,11 +22,6 @@ public class IsOpenFragment extends Fragment {
     private TextSwitcher view;
     private AnalogActivityTask task;
 
-    public IsOpenFragment() {
-
-    }
-
-
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
@@ -48,8 +43,12 @@ public class IsOpenFragment extends Fragment {
         view.setOutAnimation(v.getContext(), android.R.anim.slide_out_right);
 
         v.findViewById(R.id.fragment_main).setOnClickListener(new View.OnClickListener() {
+            private long lastTime;
+
             @Override
             public void onClick(View v) {
+                if (Math.abs(System.currentTimeMillis() - lastTime) < 1000) return;
+                lastTime = System.currentTimeMillis();
                 AppCompatTextView tv = (AppCompatTextView) view.getNextView();
 
                 if (task == null || task.getStatus() == AsyncTask.Status.FINISHED) {
