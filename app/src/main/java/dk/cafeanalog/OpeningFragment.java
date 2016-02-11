@@ -61,18 +61,15 @@ public class OpeningFragment extends Fragment {
         ListViewCompat listView = (ListViewCompat) view.findViewById(R.id.list);
 
         List<Map<String,Object>> list = new ArrayList<>();
+        String[] numerals = getResources().getStringArray(R.array.numerals);
+
         for (OpeningParser.Opening opening : openings) {
             Map<String,Object> map = new HashMap<>();
             map.put("dayOfWeek", opening.getDayOfWeek());
-            if (opening.getDayOfWeek().equals(getString(R.string.today)))
+            if (opening.getDayOfWeek().equals(getString(R.string.today))) {
                 map.put("dayOfMonth", "");
-            else {
-                String ending = "th";
-                int day = opening.getDayOfMonth();
-                if (day != 11 && day % 10 == 1) ending = "st";
-                else if (day != 12 && day % 10 == 2) ending = "nd";
-
-                map.put("dayOfMonth", day + ending);
+            } else {
+                map.put("dayOfMonth", numerals[opening.getDayOfMonth() - 1]);
             }
             map.put("open", opening.getOpen());
             map.put("close", opening.getClose());
