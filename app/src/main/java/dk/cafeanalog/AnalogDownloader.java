@@ -1,5 +1,6 @@
 package dk.cafeanalog;
 
+import android.content.Context;
 import android.util.JsonReader;
 
 import org.jsoup.Jsoup;
@@ -15,7 +16,12 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class AnalogDownloader {
-    private static final Pattern nameRegex = Pattern.compile("On shift right now: ([a-zæøå,&\\s]+)\\n", Pattern.CASE_INSENSITIVE);
+    private static final Pattern nameRegex = Pattern.compile("On shift right now: ([a-zæøå,;&\\s]+) Scheduled", Pattern.CASE_INSENSITIVE);
+    private final Context context;
+
+    public AnalogDownloader(Context context) {
+        this.context = context;
+    }
 
     public Document downloadPage() throws IOException {
         return Jsoup.connect("http://cafeanalog.dk/").get();
@@ -66,7 +72,35 @@ public class AnalogDownloader {
         }
     }
 
-    public Iterable<String> getOpenings(Document page) {
+    public Iterable<OpeningParser.Opening> getOpenings(Document page) {
+        final Iterable<String> openingStrings = getOpeningsInternal(page);
+
+        return new Iterable<OpeningParser.Opening>() {
+            private final Iterator<String> iterator = openingStrings.iterator();
+
+            @Override
+            public Iterator<OpeningParser.Opening> iterator() {
+                return new Iterator<OpeningParser.Opening>() {
+                    @Override
+                    public boolean hasNext() {
+                        return iterator.hasNext();
+                    }
+
+                    @Override
+                    public OpeningParser.Opening next() {
+                        return OpeningParser.ParseOpening(context, iterator.next());
+                    }
+
+                    @Override
+                    public void remove() {
+                        iterator.remove();
+                    }
+                };
+            }
+        };
+    }
+
+    private Iterable<String> getOpeningsInternal(Document page) {
         final Iterable<Element> elements = page.getElementById("openingHours").getElementsByTag("li");
         return new Iterable<String>() {
             private final Iterator<Element> iterator = elements.iterator();
@@ -94,18 +128,22 @@ public class AnalogDownloader {
     }
 
     public String getNames(Document page) {
-        Matcher matcher = nameRegex.matcher(page.getElementById("openingHours").text());
-        if (matcher.matches()) {
+        String text = page.getElementById("openingHours").text();
+
+        Matcher matcher = nameRegex.matcher(text);
+        if (matcher.find()) {
             String names = matcher.group(1);
             if (!names.contains("&")) {
                 return names;
             } else {
                 String[] split = names.split(" & ");
                 StringBuilder result = new StringBuilder();
+
                 for (int i = 0; i < split.length - 1; i++) {
                     result.append(split[i]).append(", ");
                 }
-                result.insert(result.length() - 2, " & ").append(split[split.length - 1]);
+                result.delete(result.length() - 2, result.length());
+                result.append(" & ").append(split[split.length - 1]);
                 return result.toString();
             }
         }

@@ -58,7 +58,8 @@ public class AnalogWidget extends AppWidgetProvider {
     private class AnalogWidgetTask extends AnalogTask {
         public AnalogWidgetTask(final Context context) {
             super(
-                    new Runnable<Boolean>() {
+                    context,
+                    new Action<Boolean>() {
                         @Override
                         public void run(final Boolean param) {
                             final AppWidgetManager appWidgetManager = AppWidgetManager.getInstance(context);
@@ -72,7 +73,7 @@ public class AnalogWidget extends AppWidgetProvider {
                             }
 
                             Handler handler = new Handler();
-                            handler.postDelayed(new java.lang.Runnable() {
+                            handler.postDelayed(new Runnable() {
                                 @Override
                                 public void run() {
                                     CharSequence widgetText;
@@ -94,7 +95,7 @@ public class AnalogWidget extends AppWidgetProvider {
                             }, 500);
                         }
                     },
-                    new java.lang.Runnable() {
+                    new Runnable() {
                         @Override
                         public void run() {
                             AppWidgetManager appWidgetManager = AppWidgetManager.getInstance(context);

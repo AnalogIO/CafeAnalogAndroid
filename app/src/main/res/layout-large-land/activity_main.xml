@@ -4,8 +4,8 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical">
-
+    android:orientation="horizontal"
+    android:baselineAligned="false" >
     <FrameLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
@@ -17,7 +17,6 @@
         android:layout_height="match_parent"
         tools:context=".MainActivity"
         android:id="@+id/opening_layout"
-        android:layout_weight="1"
-        tools:ignore="InconsistentLayout" />
+        android:layout_weight="1"/>
 
 </LinearLayout>

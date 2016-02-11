@@ -1,19 +1,22 @@
 package dk.cafeanalog;
 
+import android.content.Context;
 import android.os.AsyncTask;
 
 class AnalogTask extends AsyncTask<Void, Void, Boolean> {
-    private final Runnable<Boolean> mPostExecute;
-    private final java.lang.Runnable mCancel;
+    private final Action<Boolean> mPostExecute;
+    private final Runnable mCancel;
+    private final Context mContext;
 
-    public AnalogTask(Runnable<Boolean> postExecute, java.lang.Runnable cancel) {
+    public AnalogTask(Context context, Action<Boolean> postExecute, Runnable cancel) {
+        this.mContext = context;
         this.mPostExecute = postExecute;
         this.mCancel = cancel;
     }
 
     @Override
     protected Boolean doInBackground(Void... voids) {
-        switch (new AnalogDownloader().isOpen()) {
+        switch (new AnalogDownloader(mContext).isOpen()) {
             case OPEN:
                 return true;
             case CLOSED:

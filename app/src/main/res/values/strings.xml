@@ -6,5 +6,16 @@
     <string name="error_download">Error during download</string>
     <string name="widget_open_analog">ÅPEN</string>
     <string name="widget_closed_analog">CLØSED</string>
-    <string name="refreshing_analog">Refreshing</string>
+    <string name="refreshing_analog">Refreshing…</string>
+
+    <string name="monday">Monday</string>
+    <string name="tuesday">Tuesday</string>
+    <string name="wednesday">Wednesday</string>
+    <string name="thursday">Thursday</string>
+    <string name="friday">Friday</string>
+    <string name="saturday">Saturday</string>
+    <string name="sunday">Sunday</string>
+    <string name="unknown_day_of_week">Unknown day of week</string>
+    <string name="today">Today</string>
+    <string name="opening_hours_button">Show opening hours</string>
 </resources>

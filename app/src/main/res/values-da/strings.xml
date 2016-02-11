@@ -8,4 +8,14 @@
     <string name="widget_closed_analog">CLØSED</string>
     <string name="widget_open_analog">ÅPEN</string>
     <string name="refreshing_analog">Opdaterer…</string>
+    <string name="friday">Fredag</string>
+    <string name="monday">Mandag</string>
+    <string name="opening_hours_button">Vis åbningstider</string>
+    <string name="saturday">Lørdag</string>
+    <string name="sunday">Søndag</string>
+    <string name="thursday">Torsdag</string>
+    <string name="today">I dag</string>
+    <string name="tuesday">Tirsdag</string>
+    <string name="unknown_day_of_week">Ukendt ugedag</string>
+    <string name="wednesday">Onsdag</string>
 </resources>

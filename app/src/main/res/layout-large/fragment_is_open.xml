@@ -3,7 +3,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context="dk.cafeanalog.IsOpenFragment"
-    android:id="@+id/fragment_main">
+    android:id="@+id/fragment_main" >
 
     <TextSwitcher
         android:layout_width="match_parent"
@@ -17,16 +17,4 @@
         android:layout_below="@id/text_view"
         android:layout_centerHorizontal="true"
         android:id="@+id/name_view" />
-
-    <Button
-        android:id="@+id/openings_button"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_centerHorizontal="true"
-        android:layout_alignParentBottom="true"
-        android:layout_margin="@dimen/text_margin"
-        android:text="@string/opening_hours_button"
-        tools:ignore="InconsistentLayout" />
-
-
 </RelativeLayout>
