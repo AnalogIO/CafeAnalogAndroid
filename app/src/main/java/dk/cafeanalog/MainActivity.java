@@ -14,7 +14,7 @@ import java.util.ArrayList;
 public class MainActivity extends AppCompatActivity implements IsOpenFragment.ShowOpening {
     private static final String IS_OPEN_FRAGMENT = "dk.cafeanalog.MainActivity.IS_OPEN_FRAGMENT",
                                 OPENING_FRAGMENT = "dk.cafeanalog.MainActivity.OPENING_FRAGMENT";
-
+    private AsyncTask<Void, Void, ArrayList<OpeningParser.Opening>> openingsTask;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -34,7 +34,7 @@ public class MainActivity extends AppCompatActivity implements IsOpenFragment.Sh
                 .commit();
 
         if (isDualPane) {
-            new AsyncTask<Void, Void, ArrayList<OpeningParser.Opening>>() {
+            openingsTask = new AsyncTask<Void, Void, ArrayList<OpeningParser.Opening>>() {
                 @Override
                 protected ArrayList<OpeningParser.Opening> doInBackground(Void... params) {
                     try {
@@ -61,6 +61,14 @@ public class MainActivity extends AppCompatActivity implements IsOpenFragment.Sh
                 }
             }.execute();
         }
+    }
+
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        if (openingsTask != null) {
+            openingsTask.cancel(true);
+        }
+        super.onSaveInstanceState(outState);
     }
 
     @Override
