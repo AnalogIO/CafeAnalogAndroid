@@ -9,9 +9,9 @@ class AnalogTask extends AsyncTask<Void, Void, Boolean> {
     private final Context mContext;
 
     public AnalogTask(Context context, Action<Boolean> postExecute, Runnable cancel) {
-        this.mContext = context;
-        this.mPostExecute = postExecute;
-        this.mCancel = cancel;
+        mContext = context;
+        mPostExecute = postExecute;
+        mCancel = cancel;
     }
 
     @Override

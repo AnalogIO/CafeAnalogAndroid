@@ -6,25 +6,34 @@ import android.util.JsonReader;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
+import org.jsoup.select.Elements;
 
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.util.Iterator;
+import java.util.ArrayList;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class AnalogDownloader {
-    private static final Pattern nameRegex = Pattern.compile("On shift right now: ([a-zæøå,;&\\s]+) Scheduled", Pattern.CASE_INSENSITIVE);
-    private final Context context;
+    private static final long TIME_BETWEEN_DOWNLOADS = 10000;
+    private static final Pattern NAMES_REGEX = Pattern.compile("On shift right now: ([a-zæøå,;&\\s]+) Scheduled", Pattern.CASE_INSENSITIVE);
+
+    private final Context mContext;
+    private Document mPage;
+    private long mLastGet;
 
     public AnalogDownloader(Context context) {
-        this.context = context;
+        mContext = context;
     }
 
     public Document downloadPage() throws IOException {
-        return Jsoup.connect("http://cafeanalog.dk/").get();
+        if (System.currentTimeMillis() - mLastGet < TIME_BETWEEN_DOWNLOADS || mPage == null) {
+            mPage = Jsoup.connect("http://cafeanalog.dk/").get();
+            mLastGet = System.currentTimeMillis();
+        }
+        return mPage;
     }
 
     public enum AnalogStatus {
@@ -46,7 +55,6 @@ public class AnalogDownloader {
             while (!reader.nextName().equals("open")) { reader.skipValue(); }
             return reader.nextBoolean() ? AnalogStatus.OPEN : AnalogStatus.CLOSED;
         } catch (IOException e) {
-            e.printStackTrace();
             return AnalogStatus.UNKNOWN;
         } finally {
             if (connection != null)
@@ -54,8 +62,7 @@ public class AnalogDownloader {
             if (reader != null) {
                 try {
                     reader.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
+                } catch (IOException ignored) {
                 }
             }
         }
@@ -72,65 +79,21 @@ public class AnalogDownloader {
         }
     }
 
-    public Iterable<OpeningParser.Opening> getOpenings(Document page) {
-        final Iterable<String> openingStrings = getOpeningsInternal(page);
+    public ArrayList<Opening> getOpenings(Document page) {
+        Elements elements = page.getElementById("openingHours").getElementsByTag("li");
 
-        return new Iterable<OpeningParser.Opening>() {
-            private final Iterator<String> iterator = openingStrings.iterator();
+        ArrayList<Opening> result = new ArrayList<>();
 
-            @Override
-            public Iterator<OpeningParser.Opening> iterator() {
-                return new Iterator<OpeningParser.Opening>() {
-                    @Override
-                    public boolean hasNext() {
-                        return iterator.hasNext();
-                    }
-
-                    @Override
-                    public OpeningParser.Opening next() {
-                        return OpeningParser.ParseOpening(context, iterator.next());
-                    }
-
-                    @Override
-                    public void remove() {
-                        iterator.remove();
-                    }
-                };
-            }
-        };
-    }
-
-    private Iterable<String> getOpeningsInternal(Document page) {
-        final Iterable<Element> elements = page.getElementById("openingHours").getElementsByTag("li");
-        return new Iterable<String>() {
-            private final Iterator<Element> iterator = elements.iterator();
-
-            @Override
-            public Iterator<String> iterator() {
-                return new Iterator<String>() {
-                    @Override
-                    public boolean hasNext() {
-                        return iterator.hasNext();
-                    }
-
-                    @Override
-                    public String next() {
-                        return iterator.next().text();
-                    }
-
-                    @Override
-                    public void remove() {
-                        iterator.remove();
-                    }
-                };
-            }
-        };
+        for (Element elem : elements) {
+            result.add(OpeningParser.parseOpening(mContext, elem.text()));
+        }
+        return result;
     }
 
     public String getNames(Document page) {
         String text = page.getElementById("openingHours").text();
 
-        Matcher matcher = nameRegex.matcher(text);
+        Matcher matcher = NAMES_REGEX.matcher(text);
         if (matcher.find()) {
             String names = matcher.group(1);
             if (!names.contains("&")) {

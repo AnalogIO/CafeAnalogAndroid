@@ -14,9 +14,12 @@ import java.util.ArrayList;
 public class MainActivity extends AppCompatActivity implements IsOpenFragment.ShowOpening {
     private static final String IS_OPEN_FRAGMENT = "dk.cafeanalog.MainActivity.IS_OPEN_FRAGMENT",
                                 OPENING_FRAGMENT = "dk.cafeanalog.MainActivity.OPENING_FRAGMENT";
-    private AsyncTask<Void, Void, ArrayList<OpeningParser.Opening>> openingsTask;
+
+    private boolean mVisible;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        mVisible = true;
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
@@ -34,50 +37,70 @@ public class MainActivity extends AppCompatActivity implements IsOpenFragment.Sh
                 .commit();
 
         if (isDualPane) {
-            openingsTask = new AsyncTask<Void, Void, ArrayList<OpeningParser.Opening>>() {
-                @Override
-                protected ArrayList<OpeningParser.Opening> doInBackground(Void... params) {
-                    try {
-                        AnalogDownloader downloader = new AnalogDownloader(getApplicationContext());
-                        Document page = downloader.downloadPage();
-
-                        Iterable<OpeningParser.Opening> openings = downloader.getOpenings(page);
-
-                        ArrayList<OpeningParser.Opening> opens = new ArrayList<>();
-                        for (OpeningParser.Opening opening : openings) { opens.add(opening); }
-                        return opens;
-                    } catch (Exception e) {
-                        e.printStackTrace();
+            getOpenings(
+                    new Action<ArrayList<Opening>>() {
+                        @Override
+                        public void run(ArrayList<Opening> openings) {
+                            if (mVisible) {
+                                getSupportFragmentManager()
+                                        .beginTransaction()
+                                        .replace(R.id.opening_layout, OpeningFragment.newInstance(openings), OPENING_FRAGMENT)
+                                        .commit();
+                            }
+                        }
                     }
-                    return null;
-                }
-
-                @Override
-                protected void onPostExecute(ArrayList<OpeningParser.Opening> openings) {
-                    getSupportFragmentManager()
-                            .beginTransaction()
-                            .replace(R.id.opening_layout, OpeningFragment.newInstance(openings), OPENING_FRAGMENT)
-                            .commit();
-                }
-            }.execute();
+            );
         }
     }
 
     @Override
-    protected void onSaveInstanceState(Bundle outState) {
-        if (openingsTask != null) {
-            openingsTask.cancel(true);
-        }
-        super.onSaveInstanceState(outState);
+    protected void onResume() {
+        super.onResume();
+        mVisible = true;
     }
 
     @Override
-    public void showOpening(ArrayList<OpeningParser.Opening> openings) {
-        getSupportFragmentManager()
-                .beginTransaction()
-                .replace(R.id.main_layout, OpeningFragment.newInstance(openings), OPENING_FRAGMENT)
-                .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN)
-                .addToBackStack(null)
-                .commit();
+    protected void onPause() {
+        mVisible = false;
+        super.onPause();
+    }
+
+    private void getOpenings(final Action<ArrayList<Opening>> resultFunction) {
+        new AsyncTask<Void, Void, ArrayList<Opening>>() {
+            @Override
+            protected ArrayList<Opening> doInBackground(Void... params) {
+                try {
+                    AnalogDownloader downloader = new AnalogDownloader(getApplicationContext());
+                    Document page = downloader.downloadPage();
+
+                    return downloader.getOpenings(page);
+                } catch (Exception ignore) {}
+                return null;
+            }
+
+            @Override
+            protected void onPostExecute(ArrayList<Opening> openings) {
+                resultFunction.run(openings);
+            }
+        }.execute();
+    }
+
+    @Override
+    public void showOpening() {
+        getOpenings(
+                new Action<ArrayList<Opening>>() {
+                    @Override
+                    public void run(ArrayList<Opening> openings) {
+                        if (mVisible) {
+                            getSupportFragmentManager()
+                                    .beginTransaction()
+                                    .replace(R.id.main_layout, OpeningFragment.newInstance(openings), OPENING_FRAGMENT)
+                                    .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN)
+                                    .addToBackStack(null)
+                                    .commit();
+                        }
+                    }
+                }
+        );
     }
 }

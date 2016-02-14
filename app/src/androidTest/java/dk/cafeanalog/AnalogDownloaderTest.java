@@ -11,20 +11,20 @@ import java.io.InputStream;
 import dk.cafeanalog.test.R;
 
 public class AnalogDownloaderTest extends InstrumentationTestCase {
-    private AnalogDownloader downloader;
-    private Document closedNoOpeningsPage;
-    private Document openWithOpeningsPage;
+    private AnalogDownloader mDownloader;
+    private Document mClosedNoOpeningsPage;
+    private Document mOpenWithOpeningsPage;
 
     @Override
     protected void setUp() throws IOException {
-        downloader = new AnalogDownloader(getInstrumentation().getTargetContext());
+        mDownloader = new AnalogDownloader(getInstrumentation().getTargetContext());
         InputStream inputStream =
                 getInstrumentation()
                         .getContext()
                         .getResources()
                         .openRawResource(R.raw.closed_no_openings);
 
-        closedNoOpeningsPage = Jsoup.parse(inputStream, "UTF-8", "http://cafeanalog.dk");
+        mClosedNoOpeningsPage = Jsoup.parse(inputStream, "UTF-8", "http://cafeanalog.dk");
 
         inputStream =
                 getInstrumentation()
@@ -32,35 +32,35 @@ public class AnalogDownloaderTest extends InstrumentationTestCase {
                         .getResources()
                         .openRawResource(R.raw.open_with_openings);
 
-        openWithOpeningsPage = Jsoup.parse(inputStream, "UTF-8", "http://cafeanalog.dk");
+        mOpenWithOpeningsPage = Jsoup.parse(inputStream, "UTF-8", "http://cafeanalog.dk");
     }
 
     public void testGetNamesNoNamesReturned() {
-        String names = downloader.getNames(closedNoOpeningsPage);
+        String names = mDownloader.getNames(mClosedNoOpeningsPage);
 
         assertTrue(names.isEmpty());
     }
 
     public void testGetOpenings_NoneReturned() {
-        Iterable<OpeningParser.Opening> openings = downloader.getOpenings(closedNoOpeningsPage);
+        Iterable<Opening> openings = mDownloader.getOpenings(mClosedNoOpeningsPage);
 
         assertEquals(0, size(openings));
     }
 
     public void testGetOpenings_EightReturned() {
-        Iterable<OpeningParser.Opening> openings = downloader.getOpenings(openWithOpeningsPage);
+        Iterable<Opening> openings = mDownloader.getOpenings(mOpenWithOpeningsPage);
 
         assertEquals(8, size(openings));
     }
 
     public void testIsOpen_Page_Closed() {
-        AnalogDownloader.AnalogStatus status = downloader.isOpen(closedNoOpeningsPage);
+        AnalogDownloader.AnalogStatus status = mDownloader.isOpen(mClosedNoOpeningsPage);
 
         assertEquals(AnalogDownloader.AnalogStatus.CLOSED, status);
     }
 
     public void testIsOpen_Page_Open() {
-        AnalogDownloader.AnalogStatus status = downloader.isOpen(openWithOpeningsPage);
+        AnalogDownloader.AnalogStatus status = mDownloader.isOpen(mOpenWithOpeningsPage);
 
         assertEquals(AnalogDownloader.AnalogStatus.OPEN, status);
     }

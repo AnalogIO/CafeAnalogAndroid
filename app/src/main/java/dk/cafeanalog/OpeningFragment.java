@@ -20,7 +20,7 @@ import java.util.Map;
 public class OpeningFragment extends Fragment {
     private static final String OPENING_CONTENT = "Opening_Content";
 
-    private ArrayList<OpeningParser.Opening> openings;
+    private ArrayList<Opening> mOpenings;
 
     /**
      * Mandatory empty constructor for the fragment manager to instantiate the
@@ -29,7 +29,7 @@ public class OpeningFragment extends Fragment {
     public OpeningFragment() {
     }
 
-    public static OpeningFragment newInstance(ArrayList<OpeningParser.Opening> openings) {
+    public static OpeningFragment newInstance(ArrayList<Opening> openings) {
         OpeningFragment fragment = new OpeningFragment();
 
         Bundle args = new Bundle();
@@ -44,7 +44,7 @@ public class OpeningFragment extends Fragment {
     public void setArguments(Bundle args) {
         super.setArguments(args);
 
-        openings = args.getParcelableArrayList(OPENING_CONTENT);
+        mOpenings = args.getParcelableArrayList(OPENING_CONTENT);
     }
 
     @Override
@@ -52,7 +52,7 @@ public class OpeningFragment extends Fragment {
                              Bundle savedInstanceState) {
         if (savedInstanceState != null) {
             if (savedInstanceState.containsKey(OPENING_CONTENT)) {
-                openings = savedInstanceState.getParcelableArrayList(OPENING_CONTENT);
+                mOpenings = savedInstanceState.getParcelableArrayList(OPENING_CONTENT);
             }
         }
 
@@ -63,7 +63,7 @@ public class OpeningFragment extends Fragment {
         List<Map<String,Object>> list = new ArrayList<>();
         String[] numerals = getResources().getStringArray(R.array.numerals);
 
-        for (OpeningParser.Opening opening : openings) {
+        for (Opening opening : mOpenings) {
             Map<String,Object> map = new HashMap<>();
             map.put("dayOfWeek", opening.getDayOfWeek());
             if (opening.getDayOfWeek().equals(getString(R.string.today))) {
@@ -90,6 +90,6 @@ public class OpeningFragment extends Fragment {
     public void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
 
-        outState.putParcelableArrayList(OPENING_CONTENT, openings);
+        outState.putParcelableArrayList(OPENING_CONTENT, mOpenings);
     }
 }

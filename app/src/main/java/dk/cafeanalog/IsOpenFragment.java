@@ -18,27 +18,27 @@ import android.widget.TextSwitcher;
 import org.jsoup.nodes.Document;
 
 import java.io.IOException;
-import java.util.ArrayList;
-
 
 /**
  * A simple {@link Fragment} subclass.
  */
 public class IsOpenFragment extends Fragment {
-    private long lastTime;
-    private TextSwitcher openSwitcher, namesSwitcher;
-    private AnalogActivityTask isOpenTask;
-    private ShowOpening parent;
+    private long mLastTime;
+    private TextSwitcher mOpenSwitcher, mNamesSwitcher;
+    private AnalogActivityTask mIsOpenTask;
+    private ShowOpening mParent;
+    private boolean mVisible;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
+        mVisible = true;
         // Inflate the layout for this fragment
         View v = inflater.inflate(R.layout.fragment_is_open, container, false);
 
-        openSwitcher = (TextSwitcher) v.findViewById(R.id.text_view);
+        mOpenSwitcher = (TextSwitcher) v.findViewById(R.id.text_view);
 
-        openSwitcher.setFactory(new TextSwitcher.ViewFactory() {
+        mOpenSwitcher.setFactory(new TextSwitcher.ViewFactory() {
             @Override
             public View makeView() {
                 AppCompatTextView textView = new AppCompatTextView(getContext());
@@ -47,12 +47,12 @@ public class IsOpenFragment extends Fragment {
                 return textView;
             }
         });
-        openSwitcher.setCurrentText(getResources().getText(R.string.is_open_analog));
-        openSwitcher.setInAnimation(v.getContext(), android.R.anim.slide_in_left);
-        openSwitcher.setOutAnimation(v.getContext(), android.R.anim.slide_out_right);
+        mOpenSwitcher.setCurrentText(getResources().getText(R.string.is_open_analog));
+        mOpenSwitcher.setInAnimation(v.getContext(), android.R.anim.slide_in_left);
+        mOpenSwitcher.setOutAnimation(v.getContext(), android.R.anim.slide_out_right);
 
-        namesSwitcher = (TextSwitcher) v.findViewById(R.id.name_view);
-        namesSwitcher.setFactory(new TextSwitcher.ViewFactory() {
+        mNamesSwitcher = (TextSwitcher) v.findViewById(R.id.name_view);
+        mNamesSwitcher.setFactory(new TextSwitcher.ViewFactory() {
             @Override
             public View makeView() {
                 AppCompatTextView textView = new AppCompatTextView(getContext());
@@ -61,8 +61,8 @@ public class IsOpenFragment extends Fragment {
                 return textView;
             }
         });
-        namesSwitcher.setInAnimation(v.getContext(), android.R.anim.slide_in_left);
-        namesSwitcher.setOutAnimation(v.getContext(), android.R.anim.slide_out_right);
+        mNamesSwitcher.setInAnimation(v.getContext(), android.R.anim.slide_in_left);
+        mNamesSwitcher.setOutAnimation(v.getContext(), android.R.anim.slide_out_right);
 
         v.findViewById(R.id.fragment_main).setOnClickListener(new View.OnClickListener() {
             @Override
@@ -77,36 +77,7 @@ public class IsOpenFragment extends Fragment {
             button.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    new AsyncTask<Void, Void, ArrayList<OpeningParser.Opening>>() {
-                        @Override
-                        protected ArrayList<OpeningParser.Opening> doInBackground(Void... params) {
-                            try {
-                                AnalogDownloader downloader = new AnalogDownloader(getContext());
-                                Document page = downloader.downloadPage();
-
-                                Iterable<OpeningParser.Opening> openings = downloader.getOpenings(page);
-
-                                ArrayList<OpeningParser.Opening> opens = new ArrayList<>();
-
-                                for (OpeningParser.Opening opening : openings) {
-                                    opens.add(opening);
-                                }
-
-                                return opens;
-                            } catch (Exception e) {
-                                e.printStackTrace();
-                            }
-                            return null;
-                        }
-
-                        @Override
-                        protected void onPostExecute(ArrayList<OpeningParser.Opening> openings) {
-                            super.onPostExecute(openings);
-                            if (parent != null) {
-                                parent.showOpening(openings);
-                            }
-                        }
-                    }.execute();
+                    mParent.showOpening();
                 }
             });
         }
@@ -119,7 +90,7 @@ public class IsOpenFragment extends Fragment {
         super.onAttach(context);
 
         if (context instanceof ShowOpening) {
-            parent = (ShowOpening) context;
+            mParent = (ShowOpening) context;
         } else {
             throw new RuntimeException("Context must be instance of ShowOpening");
         }
@@ -129,23 +100,20 @@ public class IsOpenFragment extends Fragment {
     public void onDetach() {
         super.onDetach();
 
-        parent = null;
+        mParent = null;
     }
 
     @Override
     public void onDestroyView() {
-        openSwitcher = null;
-        namesSwitcher = null;
-        if (isOpenTask != null) {
-            isOpenTask.cancel(true);
-            isOpenTask = null;
-        }
+        mOpenSwitcher = null;
+        mNamesSwitcher = null;
         super.onDestroyView();
     }
 
     @Override
     public void onResume() {
         super.onResume();
+        mVisible = true;
         click();
     }
 
@@ -156,14 +124,16 @@ public class IsOpenFragment extends Fragment {
                     new Action<Boolean>() {
                         @Override
                         public void run(final Boolean param) {
-                            if (openSwitcher != null) { // The user might exit the application without waiting for response.
-                                AppCompatTextView tv = (AppCompatTextView) openSwitcher.getNextView();
-                                if (param) {
-                                    tv.setTextColor(ContextCompat.getColor(getContext(), android.R.color.holo_green_light));
-                                    openSwitcher.setText(getContext().getResources().getText(R.string.open_analog));
-                                } else {
-                                    tv.setTextColor(ContextCompat.getColor(getContext(), android.R.color.holo_red_light));
-                                    openSwitcher.setText(getContext().getResources().getText(R.string.closed_analog));
+                            if (mVisible) {
+                                if (mOpenSwitcher != null) { // The user might exit the application without waiting for response.
+                                    AppCompatTextView tv = (AppCompatTextView) mOpenSwitcher.getNextView();
+                                    if (param) {
+                                        tv.setTextColor(ContextCompat.getColor(getContext(), android.R.color.holo_green_light));
+                                        mOpenSwitcher.setText(getContext().getResources().getText(R.string.open_analog));
+                                    } else {
+                                        tv.setTextColor(ContextCompat.getColor(getContext(), android.R.color.holo_red_light));
+                                        mOpenSwitcher.setText(getContext().getResources().getText(R.string.closed_analog));
+                                    }
                                 }
                             }
                         }
@@ -171,8 +141,10 @@ public class IsOpenFragment extends Fragment {
                     new Runnable() {
                         @Override
                         public void run() {
-                            if (openSwitcher != null)
-                                openSwitcher.setText(openSwitcher.getContext().getResources().getString(R.string.error_download));
+                            if (mVisible) {
+                                if (mOpenSwitcher != null)
+                                    mOpenSwitcher.setText(mOpenSwitcher.getContext().getResources().getString(R.string.error_download));
+                            }
                         }
                     }
             );
@@ -180,12 +152,12 @@ public class IsOpenFragment extends Fragment {
     }
 
     private void click() {
-        if (Math.abs(System.currentTimeMillis() - lastTime) < 400) return;
-        lastTime = System.currentTimeMillis();
+        if (Math.abs(System.currentTimeMillis() - mLastTime) < 400) return;
+        mLastTime = System.currentTimeMillis();
 
-        if (isOpenTask == null || isOpenTask.getStatus() == AsyncTask.Status.FINISHED) {
-            isOpenTask = new AnalogActivityTask();
-            isOpenTask.execute();
+        if (mIsOpenTask == null || mIsOpenTask.getStatus() == AsyncTask.Status.FINISHED) {
+            mIsOpenTask = new AnalogActivityTask();
+            mIsOpenTask.execute();
 
             new AsyncTask<Void,Void,String>() {
                 @Override
@@ -202,21 +174,30 @@ public class IsOpenFragment extends Fragment {
 
                 @Override
                 protected void onPostExecute(final String s) {
-                    super.onPostExecute(s);
-                    if (namesSwitcher != null) {
-                        namesSwitcher.postDelayed(new Runnable() {
-                            @Override
-                            public void run() {
-                                namesSwitcher.setText(s);
-                            }
-                        }, 100);
+                    if (mVisible) {
+                        if (mNamesSwitcher != null) {
+                            mNamesSwitcher.postDelayed(new Runnable() {
+                                @Override
+                                public void run() {
+                                    if (mVisible) {
+                                        mNamesSwitcher.setText(s);
+                                    }
+                                }
+                            }, 100);
+                        }
                     }
                 }
             }.execute();
         }
     }
 
+    @Override
+    public void onPause() {
+        mVisible = false;
+        super.onPause();
+    }
+
     public interface ShowOpening {
-        void showOpening(ArrayList<OpeningParser.Opening> openings);
+        void showOpening();
     }
 }
