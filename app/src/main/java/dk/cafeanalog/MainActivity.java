@@ -75,7 +75,7 @@ public class MainActivity extends AppCompatActivity implements IsOpenFragment.Sh
 
                     return downloader.getOpenings(page);
                 } catch (Exception ignore) {}
-                return null;
+                return new ArrayList<>();
             }
 
             @Override
