@@ -90,7 +90,9 @@ public class MainActivity extends AppCompatActivity implements IsOpenFragment.Sh
                     Document page = downloader.downloadPage();
 
                     return downloader.getOpenings(page);
-                } catch (Exception ignore) {}
+                } catch (Exception ignore) {
+                    ignore.printStackTrace();
+                }
                 return new ArrayList<>();
             }
 

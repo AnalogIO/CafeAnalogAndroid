@@ -65,7 +65,7 @@ public class OpeningParser {
                 break;
         }
 
-        int dayOfMonth = Integer.parseInt(tokens[1].replaceAll("(th:)|(nd:)|(st:)", ""));
+        int dayOfMonth = Integer.parseInt(tokens[1].replaceAll("(th:)|(nd:)|(st:)|(rd:)", ""));
 
         if (new GregorianCalendar().get(Calendar.DAY_OF_MONTH) == dayOfMonth) dayOfWeek = context.getString(R.string.today);
 

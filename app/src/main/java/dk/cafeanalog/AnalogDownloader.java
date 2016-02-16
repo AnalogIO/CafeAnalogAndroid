@@ -100,8 +100,12 @@ public class AnalogDownloader {
 
         ArrayList<Opening> result = new ArrayList<>();
 
-        for (Element elem : elements) {
-            result.add(OpeningParser.parseOpening(mContext, elem.text()));
+        try {
+            for (Element elem : elements) {
+                result.add(OpeningParser.parseOpening(mContext, elem.text()));
+            }
+        } catch (Exception ignore) {
+            return result;
         }
         return result;
     }
