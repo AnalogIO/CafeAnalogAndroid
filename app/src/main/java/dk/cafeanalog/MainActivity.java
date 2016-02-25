@@ -18,7 +18,6 @@ package dk.cafeanalog;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
-import android.annotation.TargetApi;
 import android.app.AlertDialog;
 import android.app.Notification;
 import android.app.NotificationManager;
@@ -31,6 +30,7 @@ import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.RemoteException;
+import android.support.annotation.NonNull;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.AppCompatActivity;
@@ -39,12 +39,13 @@ import android.util.Log;
 import org.altbeacon.beacon.BeaconConsumer;
 import org.altbeacon.beacon.BeaconManager;
 import org.altbeacon.beacon.BeaconParser;
+import org.altbeacon.beacon.BleNotAvailableException;
 import org.altbeacon.beacon.Identifier;
 import org.altbeacon.beacon.MonitorNotifier;
 import org.altbeacon.beacon.Region;
-import org.jsoup.nodes.Document;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 public class MainActivity extends AppCompatActivity implements IsOpenFragment.ShowOpening, BeaconConsumer {
@@ -79,9 +80,9 @@ public class MainActivity extends AppCompatActivity implements IsOpenFragment.Sh
 
         if (isDualPane) {
             getOpenings(
-                    new Action<ArrayList<Opening>>() {
+                    new Action<List<Opening>>() {
                         @Override
-                        public void run(ArrayList<Opening> openings) {
+                        public void run(List<Opening> openings) {
                             if (mVisible) {
                                 getSupportFragmentManager()
                                         .beginTransaction()
@@ -93,30 +94,32 @@ public class MainActivity extends AppCompatActivity implements IsOpenFragment.Sh
             );
         }
 
-
         //beacon init
         mBeaconManager = BeaconManager.getInstanceForApplication(this);
-        mBeaconManager.getBeaconParsers().add(new BeaconParser().setBeaconLayout("m:2-3=0215,i:4-19,i:20-21,i:22-23,p:24-24,d:25-25"));
-        mBeaconManager.bind(this);
 
-
-        //Marshmallow needs the coarse location to access beacons... Damn war-driving..
-        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            if(this.checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-                final AlertDialog.Builder builder = new AlertDialog.Builder(this);
-                builder.setTitle("This app needs location access");
-                builder.setMessage("Please grant location access so this app can detect beacons.");
-                builder.setPositiveButton(android.R.string.ok, null);
-                builder.setOnDismissListener(new DialogInterface.OnDismissListener() {
-                    @SuppressLint("NewApi")
-                    @Override
-                    public void onDismiss(DialogInterface dialog) {
-                        requestPermissions(new String[]{Manifest.permission.ACCESS_COARSE_LOCATION}, PERMISSION_REQUEST_COARSE_LOCATION);
-                    }
-                });
-                builder.show();
+        try {
+            if (mBeaconManager.checkAvailability()) {
+                mBeaconManager.getBeaconParsers().add(new BeaconParser().setBeaconLayout("m:2-3=0215,i:4-19,i:20-21,i:22-23,p:24-24,d:25-25"));
+                mBeaconManager.bind(this);
             }
-        }
+            //Marshmallow needs the coarse location to access beacons... Damn war-driving..
+            if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                if(this.checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                    final AlertDialog.Builder builder = new AlertDialog.Builder(this);
+                    builder.setTitle("This app needs location access");
+                    builder.setMessage("Please grant location access so this app can detect beacons.");
+                    builder.setPositiveButton(android.R.string.ok, null);
+                    builder.setOnDismissListener(new DialogInterface.OnDismissListener() {
+                        @SuppressLint("NewApi")
+                        @Override
+                        public void onDismiss(DialogInterface dialog) {
+                            requestPermissions(new String[]{Manifest.permission.ACCESS_COARSE_LOCATION}, PERMISSION_REQUEST_COARSE_LOCATION);
+                        }
+                    });
+                    builder.show();
+                }
+            }
+        } catch (BleNotAvailableException ignore) {}
     }
 
     @Override
@@ -133,19 +136,18 @@ public class MainActivity extends AppCompatActivity implements IsOpenFragment.Sh
 
     @Override
     protected void onDestroy(){
-        super.onDestroy();
         mBeaconManager.unbind(this);
+        super.onDestroy();
     }
 
-    private void getOpenings(final Action<ArrayList<Opening>> resultFunction) {
-        new AsyncTask<Void, Void, ArrayList<Opening>>() {
+    private void getOpenings(final Action<List<Opening>> resultFunction) {
+        new AsyncTask<Void, Void, List<Opening>>() {
             @Override
-            protected ArrayList<Opening> doInBackground(Void... params) {
+            protected List<Opening> doInBackground(Void... params) {
                 try {
-                    AnalogDownloader downloader = new AnalogDownloader(getApplicationContext());
-                    Document page = downloader.downloadPage();
+                    AnalogDownloader downloader = new AnalogDownloader();
 
-                    return downloader.getOpenings(page);
+                    return downloader.getOpenings();
                 } catch (Exception ignore) {
                     ignore.printStackTrace();
                 }
@@ -153,7 +155,7 @@ public class MainActivity extends AppCompatActivity implements IsOpenFragment.Sh
             }
 
             @Override
-            protected void onPostExecute(ArrayList<Opening> openings) {
+            protected void onPostExecute(List<Opening> openings) {
                 resultFunction.run(openings);
             }
         }.execute();
@@ -162,9 +164,9 @@ public class MainActivity extends AppCompatActivity implements IsOpenFragment.Sh
     @Override
     public void showOpening() {
         getOpenings(
-                new Action<ArrayList<Opening>>() {
+                new Action<List<Opening>>() {
                     @Override
-                    public void run(ArrayList<Opening> openings) {
+                    public void run(List<Opening> openings) {
                         if (mVisible) {
                             getSupportFragmentManager()
                                     .beginTransaction()
@@ -180,18 +182,13 @@ public class MainActivity extends AppCompatActivity implements IsOpenFragment.Sh
 
     @Override
     public void onBeaconServiceConnect() {
-
-        final AnalogDownloader downloader = new AnalogDownloader(this);
+        final AnalogDownloader downloader = new AnalogDownloader();
 
         mBeaconManager.setMonitorNotifier(new MonitorNotifier() {
             @Override
             public void didEnterRegion(Region region) {
                 if (downloader.isOpen() == AnalogDownloader.AnalogStatus.OPEN) {
-                    showNotification("Hi! Analog is åpen", "Maybe go and get a coffee?");
-                }
-
-                if (downloader.isOpen() == AnalogDownloader.AnalogStatus.CLOSED) {
-                    //showNotification("Hi! Analog is not open right now", "Too bad...");
+                    showNotification(getString(R.string.notification_beacon_open_title), getString(R.string.notification_beacon_open_text));
                 }
             }
 
@@ -206,18 +203,16 @@ public class MainActivity extends AppCompatActivity implements IsOpenFragment.Sh
 
         try {
             mBeaconManager.startMonitoringBeaconsInRegion(region);
-        } catch (RemoteException e) {
-        }
+        } catch (RemoteException ignored) { }
     }
 
     public void showNotification(String title, String message) {
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.JELLY_BEAN) {
             Intent notifyIntent = new Intent(this, MainActivity.class);
             notifyIntent.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
-            PendingIntent pendingIntent = PendingIntent.getActivities(this, 0,
-                    new Intent[]{notifyIntent}, PendingIntent.FLAG_UPDATE_CURRENT);
-            Notification notification = null;
-            notification = new Notification.Builder(this)
+            PendingIntent pendingIntent = PendingIntent.getActivity(this, 0,
+                    notifyIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+            Notification notification = new Notification.Builder(this)
                     .setSmallIcon(android.R.drawable.ic_dialog_info)
                     .setContentTitle(title)
                     .setContentText(message)
@@ -232,11 +227,10 @@ public class MainActivity extends AppCompatActivity implements IsOpenFragment.Sh
     }
 
     @Override
-    public void onRequestPermissionsResult(int requestCode, String permissions[], int[] grantResults) {
+    public void onRequestPermissionsResult(int requestCode, @NonNull String permissions[], @NonNull int[] grantResults) {
         switch (requestCode) {
             case PERMISSION_REQUEST_COARSE_LOCATION: {
-                if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                } else {
+                if (grantResults[0] != PackageManager.PERMISSION_GRANTED) {
                     final AlertDialog.Builder builder = new AlertDialog.Builder(this);
                     builder.setTitle("Functionality limited");
                     builder.setMessage("Since location access has not been granted, this app will not be able to discover beacons when in the background.");
@@ -250,7 +244,6 @@ public class MainActivity extends AppCompatActivity implements IsOpenFragment.Sh
                     }
                     builder.show();
                 }
-                return;
             }
         }
     }

@@ -18,6 +18,8 @@
     <string name="unknown_day_of_week">Unknown day of week</string>
     <string name="today">Today</string>
     <string name="opening_hours_button">Show opening hours</string>
+    <string name="notification_beacon_open_title">Hi! Analog is ÅPEN</string>
+    <string name="notification_beacon_open_text">Maybe go and get a coffee?</string>
 
     <string-array name="numerals">
         <item>1st</item>

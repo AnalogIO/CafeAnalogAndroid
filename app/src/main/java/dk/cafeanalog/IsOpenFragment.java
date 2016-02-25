@@ -31,9 +31,7 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.TextSwitcher;
 
-import org.jsoup.nodes.Document;
-
-import java.io.IOException;
+import java.util.List;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -133,37 +131,64 @@ public class IsOpenFragment extends Fragment {
         click();
     }
 
-    private class AnalogActivityTask extends AnalogTask {
-        public AnalogActivityTask() {
-            super(
-                    getContext(),
-                    new Action<Boolean>() {
-                        @Override
-                        public void run(final Boolean param) {
-                            if (mVisible) {
-                                if (mOpenSwitcher != null) { // The user might exit the application without waiting for response.
-                                    AppCompatTextView tv = (AppCompatTextView) mOpenSwitcher.getNextView();
-                                    if (param) {
-                                        tv.setTextColor(ContextCompat.getColor(getContext(), android.R.color.holo_green_light));
-                                        mOpenSwitcher.setText(getContext().getResources().getText(R.string.open_analog));
-                                    } else {
-                                        tv.setTextColor(ContextCompat.getColor(getContext(), android.R.color.holo_red_light));
-                                        mOpenSwitcher.setText(getContext().getResources().getText(R.string.closed_analog));
+    private class AnalogActivityTask extends AsyncTask<Void, Void, Opening> {
+
+        @Override
+        protected Opening doInBackground(Void... params) {
+            try {
+                return new AnalogDownloader().getCurrentOpening();
+            } catch (Exception e) {
+                e.printStackTrace();
+                cancel(true);
+                return null;
+            }
+        }
+
+        @Override
+        protected void onPostExecute(final Opening opening) {
+            super.onPostExecute(opening);
+            if (mVisible) {
+                if (mOpenSwitcher != null) { // The user might exit the application without waiting for response.
+                    AppCompatTextView tv = (AppCompatTextView) mOpenSwitcher.getNextView();
+                    if (opening != null) {
+                        tv.setTextColor(ContextCompat.getColor(getContext(), android.R.color.holo_green_light));
+                        mOpenSwitcher.setText(getContext().getResources().getText(R.string.open_analog));
+
+                        if (mVisible) {
+                            if (mNamesSwitcher != null) {
+                                mNamesSwitcher.postDelayed(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        if (mVisible) {
+                                            StringBuilder builder = new StringBuilder();
+                                            List<String> names = opening.getNames();
+                                            for (int i = 0; i < names.size() - 1; i++) {
+                                                builder.append(names.get(i)).append(", ");
+                                            }
+                                            builder.replace(builder.length() - 2, builder.length(), " &")
+                                                    .append(" ").append(names.get(names.size() - 1));
+
+                                            mNamesSwitcher.setText(builder);
+                                        }
                                     }
-                                }
+                                }, 100);
                             }
                         }
-                    },
-                    new Runnable() {
-                        @Override
-                        public void run() {
-                            if (mVisible) {
-                                if (mOpenSwitcher != null)
-                                    mOpenSwitcher.setText(mOpenSwitcher.getContext().getResources().getString(R.string.error_download));
-                            }
-                        }
+                    } else {
+                        tv.setTextColor(ContextCompat.getColor(getContext(), android.R.color.holo_red_light));
+                        mOpenSwitcher.setText(getContext().getResources().getText(R.string.closed_analog));
                     }
-            );
+                }
+            }
+        }
+
+        @Override
+        protected void onCancelled() {
+            super.onCancelled();
+            if (mVisible) {
+                if (mOpenSwitcher != null)
+                    mOpenSwitcher.setText(mOpenSwitcher.getContext().getResources().getString(R.string.error_download));
+            }
         }
     }
 
@@ -174,36 +199,6 @@ public class IsOpenFragment extends Fragment {
         if (mIsOpenTask == null || mIsOpenTask.getStatus() == AsyncTask.Status.FINISHED) {
             mIsOpenTask = new AnalogActivityTask();
             mIsOpenTask.execute();
-
-            new AsyncTask<Void,Void,String>() {
-                @Override
-                protected String doInBackground(Void... params) {
-                    try {
-                        AnalogDownloader downloader = new AnalogDownloader(getContext());
-                        Document page = downloader.downloadPage();
-                        return downloader.getNames(page);
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                    return "";
-                }
-
-                @Override
-                protected void onPostExecute(final String s) {
-                    if (mVisible) {
-                        if (mNamesSwitcher != null) {
-                            mNamesSwitcher.postDelayed(new Runnable() {
-                                @Override
-                                public void run() {
-                                    if (mVisible) {
-                                        mNamesSwitcher.setText(s);
-                                    }
-                                }
-                            }, 100);
-                        }
-                    }
-                }
-            }.execute();
         }
     }
 

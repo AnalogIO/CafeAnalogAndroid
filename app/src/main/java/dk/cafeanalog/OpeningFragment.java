@@ -24,10 +24,16 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.SimpleAdapter;
 
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
+import java.util.TimeZone;
 
 /**
  * A fragment representing a list of Items.
@@ -45,11 +51,11 @@ public class OpeningFragment extends Fragment {
     public OpeningFragment() {
     }
 
-    public static OpeningFragment newInstance(ArrayList<Opening> openings) {
+    public static OpeningFragment newInstance(List<Opening> openings) {
         OpeningFragment fragment = new OpeningFragment();
 
         Bundle args = new Bundle();
-        args.putParcelableArrayList(OPENING_CONTENT, openings);
+        args.putParcelableArrayList(OPENING_CONTENT, new ArrayList<>(openings));
 
         fragment.setArguments(args);
 
@@ -59,8 +65,26 @@ public class OpeningFragment extends Fragment {
     @Override
     public void setArguments(Bundle args) {
         super.setArguments(args);
-
         mOpenings = args.getParcelableArrayList(OPENING_CONTENT);
+        ArrayList<Opening> openings = new ArrayList<>();
+
+        for (Opening opening : mOpenings) {
+            if (openings.isEmpty()) {
+                openings.add(opening);
+                continue;
+            }
+            Opening last = openings.get(openings.size() - 1);
+            if (last.getClose().equals(opening.getOpen())) {
+                List<String> names = new ArrayList<>();
+                names.addAll(last.getNames());
+                names.addAll(opening.getNames());
+                openings.set(openings.size() - 1, new Opening(last.getOpen(), opening.getClose(), names));
+            } else {
+                openings.add(opening);
+            }
+        }
+
+        mOpenings = openings;
     }
 
     @Override
@@ -79,16 +103,23 @@ public class OpeningFragment extends Fragment {
         List<Map<String,Object>> list = new ArrayList<>();
         String[] numerals = getResources().getStringArray(R.array.numerals);
 
+        Calendar calendar = Calendar.getInstance();
+        DateFormat dayFormat = new SimpleDateFormat("EEEE", Locale.getDefault());
+        DateFormat timeFormat = new SimpleDateFormat("HH:mm", Locale.getDefault());
+        timeFormat.setTimeZone(TimeZone.getTimeZone("CET"));
+
         for (Opening opening : mOpenings) {
             Map<String,Object> map = new HashMap<>();
-            map.put("dayOfWeek", opening.getDayOfWeek());
-            if (opening.getDayOfWeek().equals(getString(R.string.today))) {
+
+            map.put("dayOfWeek", dayFormat.format(opening.getOpen()));
+            if (isToday(opening.getOpen())) {
                 map.put("dayOfMonth", "");
             } else {
-                map.put("dayOfMonth", numerals[opening.getDayOfMonth() - 1]);
+                calendar.setTime(opening.getOpen());
+                map.put("dayOfMonth", numerals[calendar.get(Calendar.DAY_OF_MONTH) - 1]);
             }
-            map.put("open", opening.getOpen());
-            map.put("close", opening.getClose());
+            map.put("open", timeFormat.format(opening.getOpen()));
+            map.put("close", timeFormat.format(opening.getClose()));
 
             list.add(map);
         }
@@ -100,6 +131,17 @@ public class OpeningFragment extends Fragment {
                         new String[]{"dayOfWeek", "dayOfMonth", "open", "close"},
                         new int[]{R.id.day_of_week, R.id.day_of_month, R.id.open, R.id.close}));
         return view;
+    }
+
+    private final Calendar mToday = Calendar.getInstance();
+
+    private boolean isToday(Date date) {
+        Calendar dateCal = Calendar.getInstance();
+        dateCal.setTime(date);
+
+        return
+                mToday.get(Calendar.MONTH) == dateCal.get(Calendar.MONTH)
+                && mToday.get(Calendar.DAY_OF_MONTH) == dateCal.get(Calendar.DAY_OF_MONTH);
     }
 
     @Override

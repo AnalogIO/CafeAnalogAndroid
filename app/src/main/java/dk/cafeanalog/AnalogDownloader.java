@@ -16,41 +16,31 @@
 
 package dk.cafeanalog;
 
-import android.content.Context;
 import android.util.JsonReader;
 
-import org.jsoup.Jsoup;
-import org.jsoup.nodes.Document;
-import org.jsoup.nodes.Element;
-import org.jsoup.select.Elements;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 
+import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import java.util.Date;
+import java.util.List;
+import java.util.Locale;
+import java.util.TimeZone;
 
 public class AnalogDownloader {
     private static final long TIME_BETWEEN_DOWNLOADS = 10000;
-    private static final Pattern NAMES_REGEX = Pattern.compile("On shift right now: ([a-zæøå,;&\\s]+) Opening", Pattern.CASE_INSENSITIVE);
 
-    private final Context mContext;
-    private Document mPage;
+    private List<Opening> mOpeningsCache;
     private long mLastGet;
-
-    public AnalogDownloader(Context context) {
-        mContext = context;
-    }
-
-    public Document downloadPage() throws IOException {
-        if (System.currentTimeMillis() - mLastGet < TIME_BETWEEN_DOWNLOADS || mPage == null) {
-            mPage = Jsoup.connect("http://cafeanalog.dk/").get();
-            mLastGet = System.currentTimeMillis();
-        }
-        return mPage;
-    }
 
     public enum AnalogStatus {
         OPEN,
@@ -84,52 +74,55 @@ public class AnalogDownloader {
         }
     }
 
-    public AnalogStatus isOpen(Document page) {
-        String text = page.getElementById("openingHours").getElementsByTag("h1").text();
-        if (text.contains("Cløsed")) {
-            return AnalogStatus.CLOSED;
-        } else if (text.contains("Åpen")) {
-            return AnalogStatus.OPEN;
-        } else {
-            return AnalogStatus.UNKNOWN;
+    public Opening getCurrentOpening() throws JSONException, ParseException, IOException {
+        if (System.currentTimeMillis() - mLastGet > TIME_BETWEEN_DOWNLOADS || mOpeningsCache == null) {
+            getOpenings();
         }
-    }
-
-    public ArrayList<Opening> getOpenings(Document page) {
-        Elements elements = page.getElementById("openingHours").getElementsByTag("li");
-
-        ArrayList<Opening> result = new ArrayList<>();
-
-        try {
-            for (Element elem : elements) {
-                result.add(OpeningParser.parseOpening(mContext, elem.text()));
-            }
-        } catch (Exception ignore) {
-            return result;
-        }
-        return result;
-    }
-
-    public String getNames(Document page) {
-        String text = page.getElementById("openingHours").text();
-
-        Matcher matcher = NAMES_REGEX.matcher(text);
-        if (matcher.find()) {
-            String names = matcher.group(1);
-            if (!names.contains("&")) {
-                return names;
-            } else {
-                String[] split = names.split(" & ");
-                StringBuilder result = new StringBuilder();
-
-                for (int i = 0; i < split.length - 1; i++) {
-                    result.append(split[i]).append(", ");
-                }
-                result.delete(result.length() - 2, result.length());
-                result.append(" & ").append(split[split.length - 1]);
-                return result.toString();
+        Date now = new Date(System.currentTimeMillis());
+        for (Opening opening : mOpeningsCache) {
+            if (now.after(opening.getOpen()) && now.before(opening.getClose())) {
+                return opening;
             }
         }
-        return "";
+        return null;
+    }
+
+    public List<Opening> getOpenings() throws IOException, JSONException, ParseException {
+        if (System.currentTimeMillis() - mLastGet < TIME_BETWEEN_DOWNLOADS && mOpeningsCache != null) {
+            return mOpeningsCache;
+        }
+        mLastGet = System.currentTimeMillis();
+        URL url = new URL("http", "cafeanalog.dk", "api/shifts");
+        HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+
+        connection.setRequestMethod("GET");
+        connection.connect();
+
+        BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+        StringBuilder builder = new StringBuilder();
+        String s; while ((s = reader.readLine()) != null) { builder.append(s); }
+
+        JSONArray array = new JSONArray(builder.toString());
+
+        DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZZZ", Locale.getDefault());
+
+        ArrayList<Opening> openings = new ArrayList<>();
+
+        for (int i = 0; i < array.length(); i++) {
+            JSONObject object = array.getJSONObject(i);
+
+            Date open = dateFormat.parse(object.getString("Open"));
+            Date close = dateFormat.parse(object.getString("Close"));
+            JSONArray nameArray = object.getJSONArray("Employees");
+            List<String> names = new ArrayList<>();
+
+            for (int j = 0; j < nameArray.length(); j++) {
+                names.add(nameArray.getString(j));
+            }
+
+            openings.add(new Opening(open, close, names));
+        }
+        mOpeningsCache = openings;
+        return openings;
     }
 }

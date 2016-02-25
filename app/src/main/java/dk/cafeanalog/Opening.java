@@ -19,62 +19,45 @@ package dk.cafeanalog;
 import android.os.Parcel;
 import android.os.Parcelable;
 
-public class Opening implements Parcelable {
-    private final String mDayOfWeek, mOpen, mClose;
-    private final int mDayOfMonth;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
 
-    public Opening(String dayOfWeek, int dayOfMonth, String open, String close) {
-        mDayOfWeek = dayOfWeek;
-        mDayOfMonth = dayOfMonth;
+public class Opening implements Parcelable {
+    private final Date mOpen, mClose;
+    private final List<String> mNames;
+
+    public Opening(Date open, Date close, List<String> names) {
         mOpen = open;
         mClose = close;
+        mNames = names;
     }
 
     private Opening(Parcel in) {
-        mDayOfWeek = in.readString();
-        mOpen = in.readString();
-        mClose = in.readString();
-        mDayOfMonth = in.readInt();
+        mOpen = new Date(in.readLong());
+        mClose = new Date(in.readLong());
+        in.readStringList(mNames = new ArrayList<>());
     }
 
     public static final Creator<Opening> CREATOR = new Creator<Opening>() {
         @Override
-        public Opening createFromParcel(Parcel in) {
-            return new Opening(in);
-        }
+        public Opening createFromParcel(Parcel in) { return new Opening(in); }
 
         @Override
-        public Opening[] newArray(int size) {
-            return new Opening[size];
-        }
+        public Opening[] newArray(int size) { return new Opening[size]; }
     };
 
-    public int getDayOfMonth() {
-        return mDayOfMonth;
-    }
-
-    public String getClose() {
-        return mClose;
-    }
-
-    public String getDayOfWeek() {
-        return mDayOfWeek;
-    }
-
-    public String getOpen() {
-        return mOpen;
-    }
+    public Date getOpen() { return mOpen; }
+    public Date getClose() { return mClose; }
+    public List<String> getNames() { return mNames; }
 
     @Override
-    public int describeContents() {
-        return 0;
-    }
+    public int describeContents() { return 0; }
 
     @Override
     public void writeToParcel(Parcel dest, int flags) {
-        dest.writeString(mDayOfWeek);
-        dest.writeInt(mDayOfMonth);
-        dest.writeString(mOpen);
-        dest.writeString(mClose);
+        dest.writeLong(mOpen.getTime());
+        dest.writeLong(mClose.getTime());
+        dest.writeStringList(mNames);
     }
 }
