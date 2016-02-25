@@ -34,7 +34,7 @@ import java.util.regex.Pattern;
 
 public class AnalogDownloader {
     private static final long TIME_BETWEEN_DOWNLOADS = 10000;
-    private static final Pattern NAMES_REGEX = Pattern.compile("On shift right now: ([a-zæøå,;&\\s]+) Scheduled", Pattern.CASE_INSENSITIVE);
+    private static final Pattern NAMES_REGEX = Pattern.compile("On shift right now: ([a-zæøå,;&\\s]+) Opening", Pattern.CASE_INSENSITIVE);
 
     private final Context mContext;
     private Document mPage;
@@ -62,7 +62,7 @@ public class AnalogDownloader {
         HttpURLConnection connection = null;
         JsonReader reader = null;
         try {
-            URL url = new URL("http", "cafeanalog.dk", "REST");
+            URL url = new URL("http", "cafeanalog.dk", "api/open");
             connection = (HttpURLConnection) url.openConnection();
             connection.setRequestMethod("GET");
             connection.connect();
