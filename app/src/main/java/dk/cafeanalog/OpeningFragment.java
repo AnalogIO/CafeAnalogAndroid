@@ -114,6 +114,7 @@ public class OpeningFragment extends Fragment {
             map.put("dayOfWeek", dayFormat.format(opening.getOpen()));
             if (isToday(opening.getOpen())) {
                 map.put("dayOfMonth", "");
+                map.put("dayOfWeek", "Today");
             } else {
                 calendar.setTime(opening.getOpen());
                 map.put("dayOfMonth", numerals[calendar.get(Calendar.DAY_OF_MONTH) - 1]);
