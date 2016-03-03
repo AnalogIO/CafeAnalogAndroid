@@ -59,7 +59,7 @@ public class MainActivity extends AppCompatActivity implements IsOpenFragment.Sh
                             if (mVisible) {
                                 getSupportFragmentManager()
                                         .beginTransaction()
-                                        .replace(R.id.opening_layout, OpeningFragment.newInstance(openings), OPENING_FRAGMENT)
+                                        .replace(R.id.opening_layout, OpeningsFragment.newInstance(openings), OPENING_FRAGMENT)
                                         .commit();
                             }
                         }
@@ -110,7 +110,7 @@ public class MainActivity extends AppCompatActivity implements IsOpenFragment.Sh
                         if (mVisible) {
                             getSupportFragmentManager()
                                     .beginTransaction()
-                                    .replace(R.id.main_layout, OpeningFragment.newInstance(openings), OPENING_FRAGMENT)
+                                    .replace(R.id.main_layout, OpeningsFragment.newInstance(openings), OPENING_FRAGMENT)
                                     .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN)
                                     .addToBackStack(null)
                                     .commit();

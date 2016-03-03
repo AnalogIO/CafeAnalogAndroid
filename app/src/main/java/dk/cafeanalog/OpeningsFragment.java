@@ -39,7 +39,7 @@ import java.util.TimeZone;
  * A fragment representing a list of Items.
  * <p/>
  */
-public class OpeningFragment extends Fragment {
+public class OpeningsFragment extends Fragment {
     private static final String OPENING_CONTENT = "Opening_Content";
 
     private ArrayList<Opening> mOpenings;
@@ -48,11 +48,11 @@ public class OpeningFragment extends Fragment {
      * Mandatory empty constructor for the fragment manager to instantiate the
      * fragment (e.g. upon screen orientation changes).
      */
-    public OpeningFragment() {
+    public OpeningsFragment() {
     }
 
-    public static OpeningFragment newInstance(List<Opening> openings) {
-        OpeningFragment fragment = new OpeningFragment();
+    public static OpeningsFragment newInstance(List<Opening> openings) {
+        OpeningsFragment fragment = new OpeningsFragment();
 
         Bundle args = new Bundle();
         args.putParcelableArrayList(OPENING_CONTENT, new ArrayList<>(openings));
