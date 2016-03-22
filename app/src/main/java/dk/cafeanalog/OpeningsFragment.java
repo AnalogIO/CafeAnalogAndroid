@@ -16,24 +16,20 @@
 
 package dk.cafeanalog;
 
+import android.content.Context;
+import android.os.Build;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
-import android.support.v7.widget.ListViewCompat;
+import android.support.v4.content.ContextCompat;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.SimpleAdapter;
+import android.widget.TextView;
 
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.TimeZone;
 
 /**
  * A fragment representing a list of Items.
@@ -42,7 +38,7 @@ import java.util.TimeZone;
 public class OpeningsFragment extends Fragment {
     private static final String OPENING_CONTENT = "Opening_Content";
 
-    private ArrayList<Opening> mOpenings;
+    private ArrayList<DayOfOpenings> mOpenings;
 
     /**
      * Mandatory empty constructor for the fragment manager to instantiate the
@@ -51,7 +47,7 @@ public class OpeningsFragment extends Fragment {
     public OpeningsFragment() {
     }
 
-    public static OpeningsFragment newInstance(List<Opening> openings) {
+    public static OpeningsFragment newInstance(List<DayOfOpenings> openings) {
         OpeningsFragment fragment = new OpeningsFragment();
 
         Bundle args = new Bundle();
@@ -66,29 +62,10 @@ public class OpeningsFragment extends Fragment {
     public void setArguments(Bundle args) {
         super.setArguments(args);
         mOpenings = args.getParcelableArrayList(OPENING_CONTENT);
-        ArrayList<Opening> openings = new ArrayList<>();
-
-        for (Opening opening : mOpenings) {
-            if (openings.isEmpty()) {
-                openings.add(opening);
-                continue;
-            }
-            Opening last = openings.get(openings.size() - 1);
-            if (last.getClose().equals(opening.getOpen())) {
-                List<String> names = new ArrayList<>();
-                names.addAll(last.getNames());
-                names.addAll(opening.getNames());
-                openings.set(openings.size() - 1, new Opening(last.getOpen(), opening.getClose(), names));
-            } else {
-                openings.add(opening);
-            }
-        }
-
-        mOpenings = openings;
     }
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
+    public View onCreateView(final LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         if (savedInstanceState != null) {
             if (savedInstanceState.containsKey(OPENING_CONTENT)) {
@@ -98,51 +75,62 @@ public class OpeningsFragment extends Fragment {
 
         View view = inflater.inflate(R.layout.fragment_opening_list, container, false);
 
-        ListViewCompat listView = (ListViewCompat) view.findViewById(R.id.list);
-
-        List<Map<String,Object>> list = new ArrayList<>();
-        String[] numerals = getResources().getStringArray(R.array.numerals);
-
-        Calendar calendar = Calendar.getInstance();
-        DateFormat dayFormat = new SimpleDateFormat("EEEE", Locale.getDefault());
-        DateFormat timeFormat = new SimpleDateFormat("HH:mm", Locale.getDefault());
-        timeFormat.setTimeZone(TimeZone.getTimeZone("CET"));
-
-        for (Opening opening : mOpenings) {
-            Map<String,Object> map = new HashMap<>();
-
-            map.put("dayOfWeek", dayFormat.format(opening.getOpen()));
-            if (isToday(opening.getOpen())) {
-                map.put("dayOfMonth", "");
-                map.put("dayOfWeek", "Today");
-            } else {
-                calendar.setTime(opening.getOpen());
-                map.put("dayOfMonth", numerals[calendar.get(Calendar.DAY_OF_MONTH) - 1]);
+        RecyclerView listView = (RecyclerView) view.findViewById(R.id.list);
+        listView.setLayoutManager(new LinearLayoutManager(getContext(), LinearLayoutManager.VERTICAL, false));
+        listView.setAdapter(new RecyclerView.Adapter<DayHolder>() {
+            @Override
+            public DayHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+                View day = inflater.inflate(R.layout.day, parent, false);
+                return new DayHolder(day);
             }
-            map.put("open", timeFormat.format(opening.getOpen()));
-            map.put("close", timeFormat.format(opening.getClose()));
 
-            list.add(map);
-        }
+            @Override
+            public void onBindViewHolder(DayHolder holder, int position) {
+                DayOfOpenings day = mOpenings.get(position);
 
-        listView.setAdapter(
-                new SimpleAdapter(getContext(),
-                        list,
-                        R.layout.fragment_opening,
-                        new String[]{"dayOfWeek", "dayOfMonth", "open", "close"},
-                        new int[]{R.id.day_of_week, R.id.day_of_month, R.id.open, R.id.close}));
+                if (day.getMorning()) {
+                    holder.morning.setEnabled(true);
+                    setBackground(R.drawable.border, holder.morning);
+                } else {
+                    holder.morning.setEnabled(false);
+                    setBackground(R.drawable.border_inactive, holder.morning);
+                }
+
+                if (day.getNoon()) {
+                    holder.noon.setEnabled(true);
+                    setBackground(R.drawable.border, holder.noon);
+                } else {
+                    holder.noon.setEnabled(false);
+                    setBackground(R.drawable.border_inactive, holder.noon);
+                }
+
+                if (day.getAfternoon()) {
+                    holder.afternoon.setEnabled(true);
+                    setBackground(R.drawable.border, holder.afternoon);
+                } else {
+                    holder.afternoon.setEnabled(false);
+                    setBackground(R.drawable.border_inactive, holder.afternoon);
+                }
+
+                holder.dayOfWeek.setText(getDayOfWeek(getContext(), day.getDayOfWeek()));
+            }
+
+            @Override
+            public int getItemCount() {
+                return mOpenings.size();
+            }
+        });
+
         return view;
     }
 
-    private final Calendar mToday = Calendar.getInstance();
-
-    private boolean isToday(Date date) {
-        Calendar dateCal = Calendar.getInstance();
-        dateCal.setTime(date);
-
-        return
-                mToday.get(Calendar.MONTH) == dateCal.get(Calendar.MONTH)
-                && mToday.get(Calendar.DAY_OF_MONTH) == dateCal.get(Calendar.DAY_OF_MONTH);
+    private void setBackground(int drawable, View v) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
+            v.setBackground(ContextCompat.getDrawable(getContext(), drawable));
+        } else {
+            //noinspection deprecation
+            v.setBackgroundDrawable(ContextCompat.getDrawable(getContext(), drawable));
+        }
     }
 
     @Override
@@ -150,5 +138,30 @@ public class OpeningsFragment extends Fragment {
         super.onSaveInstanceState(outState);
 
         outState.putParcelableArrayList(OPENING_CONTENT, mOpenings);
+    }
+
+    private class DayHolder extends RecyclerView.ViewHolder {
+        private final TextView morning, noon, afternoon, dayOfWeek;
+
+        public DayHolder(View itemView) {
+            super(itemView);
+            morning = (TextView) itemView.findViewById(R.id.morning);
+            noon = (TextView) itemView.findViewById(R.id.noon);
+            afternoon = (TextView) itemView.findViewById(R.id.afternoon);
+            dayOfWeek = (TextView) itemView.findViewById(R.id.day_of_week);
+        }
+    }
+
+    private static String getDayOfWeek(Context context, int dayOfWeek) {
+        switch (dayOfWeek) {
+            case DayOfOpenings.SUNDAY: return context.getString(R.string.sunday);
+            case DayOfOpenings.MONDAY: return context.getString(R.string.monday);
+            case DayOfOpenings.TUESDAY: return context.getString(R.string.tuesday);
+            case DayOfOpenings.WEDNESDAY: return context.getString(R.string.wednesday);
+            case DayOfOpenings.THURSDAY: return context.getString(R.string.thursday);
+            case DayOfOpenings.FRIDAY: return context.getString(R.string.friday);
+            case DayOfOpenings.SATURDAY:
+            default:                   return context.getString(R.string.saturday);
+        }
     }
 }

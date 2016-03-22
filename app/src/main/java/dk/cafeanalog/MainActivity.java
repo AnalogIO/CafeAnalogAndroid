@@ -18,10 +18,8 @@ package dk.cafeanalog;
 
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -38,33 +36,12 @@ public class MainActivity extends AppCompatActivity implements IsOpenFragment.Sh
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        boolean isDualPane = findViewById(R.id.opening_layout) != null;
-
-        Log.d("MainActivity", "DualPane: " + isDualPane);
-
-        if (savedInstanceState != null) {
-            getSupportFragmentManager().popBackStackImmediate(null, FragmentManager.POP_BACK_STACK_INCLUSIVE);
-        }
-
-        getSupportFragmentManager()
-                .beginTransaction()
-                .replace(R.id.main_layout, new IsOpenFragment(), IS_OPEN_FRAGMENT)
-                .commit();
-
-        if (isDualPane) {
-            getOpenings(
-                    new Action<List<Opening>>() {
-                        @Override
-                        public void run(List<Opening> openings) {
-                            if (mVisible) {
-                                getSupportFragmentManager()
-                                        .beginTransaction()
-                                        .replace(R.id.opening_layout, OpeningsFragment.newInstance(openings), OPENING_FRAGMENT)
-                                        .commit();
-                            }
-                        }
-                    }
-            );
+        if (savedInstanceState == null) {
+            // Only if the application is fresh. Otherwise, keep last state of fragment manager.
+            getSupportFragmentManager()
+                    .beginTransaction()
+                    .replace(R.id.main_layout, new IsOpenFragment(), IS_OPEN_FRAGMENT)
+                    .commit();
         }
     }
 
@@ -80,14 +57,14 @@ public class MainActivity extends AppCompatActivity implements IsOpenFragment.Sh
         super.onPause();
     }
 
-    private void getOpenings(final Action<List<Opening>> resultFunction) {
-        new AsyncTask<Void, Void, List<Opening>>() {
+    private void getOpenings(final Action<List<DayOfOpenings>> resultFunction) {
+        new AsyncTask<Void, Void, List<DayOfOpenings>>() {
             @Override
-            protected List<Opening> doInBackground(Void... params) {
+            protected List<DayOfOpenings> doInBackground(Void... params) {
                 try {
                     AnalogDownloader downloader = new AnalogDownloader();
 
-                    return downloader.getOpenings();
+                    return downloader.getDaysOfOpenings();
                 } catch (Exception ignore) {
                     ignore.printStackTrace();
                 }
@@ -95,7 +72,7 @@ public class MainActivity extends AppCompatActivity implements IsOpenFragment.Sh
             }
 
             @Override
-            protected void onPostExecute(List<Opening> openings) {
+            protected void onPostExecute(List<DayOfOpenings> openings) {
                 resultFunction.run(openings);
             }
         }.execute();
@@ -104,9 +81,9 @@ public class MainActivity extends AppCompatActivity implements IsOpenFragment.Sh
     @Override
     public void showOpening() {
         getOpenings(
-                new Action<List<Opening>>() {
+                new Action<List<DayOfOpenings>>() {
                     @Override
-                    public void run(List<Opening> openings) {
+                    public void run(List<DayOfOpenings> openings) {
                         if (mVisible) {
                             getSupportFragmentManager()
                                     .beginTransaction()

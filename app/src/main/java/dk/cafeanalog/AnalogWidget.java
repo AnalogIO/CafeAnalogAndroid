@@ -73,7 +73,7 @@ public class AnalogWidget extends AppWidgetProvider {
     }
 
     private class AnalogWidgetTask extends AsyncTask<Void, Void, Boolean> {
-        private Context mContext;
+        private final Context mContext;
 
         public AnalogWidgetTask(Context context) {
             mContext = context;

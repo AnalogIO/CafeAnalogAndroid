@@ -17,6 +17,7 @@
 package dk.cafeanalog;
 
 import android.util.JsonReader;
+import android.util.Log;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -31,6 +32,9 @@ import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
@@ -38,7 +42,7 @@ import java.util.Locale;
 public class AnalogDownloader {
     private static final long TIME_BETWEEN_DOWNLOADS = 10000;
 
-    private List<Opening> mOpeningsCache;
+    private ArrayList<Opening> mOpeningsCache;
     private long mLastGet;
 
     public enum AnalogStatus {
@@ -50,6 +54,7 @@ public class AnalogDownloader {
     public AnalogStatus isOpen() {
         HttpURLConnection connection = null;
         JsonReader reader = null;
+
         try {
             URL url = new URL("http", "cafeanalog.dk", "api/open");
             connection = (HttpURLConnection) url.openConnection();
@@ -86,7 +91,7 @@ public class AnalogDownloader {
         return null;
     }
 
-    public List<Opening> getOpenings() throws IOException, JSONException, ParseException {
+    private ArrayList<Opening> getOpenings() throws IOException, JSONException, ParseException {
         if (System.currentTimeMillis() - mLastGet < TIME_BETWEEN_DOWNLOADS && mOpeningsCache != null) {
             return mOpeningsCache;
         }
@@ -123,5 +128,68 @@ public class AnalogDownloader {
         }
         mOpeningsCache = openings;
         return openings;
+    }
+
+    public List<DayOfOpenings> getDaysOfOpenings() throws JSONException, ParseException, IOException {
+        ArrayList<Opening> openings = getOpenings();
+
+        Collections.sort(openings, new Comparator<Opening>() {
+            @Override
+            public int compare(Opening lhs, Opening rhs) {
+                return lhs.getOpen().compareTo(rhs.getOpen());
+            }
+        });
+
+        ArrayList<DayOfOpenings> result = new ArrayList<>();
+
+        Calendar calendar = Calendar.getInstance();
+
+        for (Opening opening : openings) {
+            calendar.setTime(opening.getOpen());
+            int dayOfMonth = calendar.get(Calendar.DATE);
+            DayOfOpenings day;
+            boolean retrieved = false;
+            if (!result.isEmpty()) {
+                day = result.get(result.size() - 1);
+                if (day.getDayOfMonth() != dayOfMonth) {
+                    day = new DayOfOpenings(dayOfMonth, calendar.get(Calendar.DAY_OF_WEEK));
+                } else {
+                    retrieved = true;
+                }
+            } else {
+                day = new DayOfOpenings(dayOfMonth, calendar.get(Calendar.DAY_OF_WEEK));
+            }
+
+            int openHour = calendar.get(Calendar.HOUR_OF_DAY);
+            switch (openHour) {
+                case 9:
+                    day.setMorning();
+                    break;
+                case 11:
+                    day.setNoon();
+                    break;
+                case 14:
+                    day.setAfternoon();
+                    break;
+                default:
+                    Log.d("OpeningsTranslation", "Wrong hour: " + openHour);
+            }
+            calendar.setTime(opening.getClose());
+
+            int closeHour = calendar.get(Calendar.HOUR_OF_DAY);
+
+            if (openHour == 9 && closeHour == 14) {
+                day.setNoon();
+            } else if (openHour == 9 && closeHour == 17) {
+                day.setNoon();
+                day.setAfternoon();
+            } else if (openHour == 11 && closeHour == 17) {
+                day.setAfternoon();
+            }
+
+            if (!retrieved) result.add(day);
+        }
+
+        return result;
     }
 }
