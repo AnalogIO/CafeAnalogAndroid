@@ -24,11 +24,13 @@ import android.content.Context;
 import android.content.Intent;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
-import android.os.AsyncTask;
-import android.os.Handler;
 import android.support.v4.content.ContextCompat;
 import android.widget.RemoteViews;
 import android.widget.Toast;
+
+import dk.cafeanalog.networking.AnalogClient;
+import dk.cafeanalog.networking.OpeningStatus;
+import rx.functions.Action1;
 
 /**
  * Implementation of App Widget functionality.
@@ -36,30 +38,31 @@ import android.widget.Toast;
 public class AnalogWidget extends AppWidgetProvider {
     private static final String SYNC_CLICKED = "automaticWidgetSyncButtonClick";
 
+
     @Override
-    public void onUpdate(Context context, AppWidgetManager appWidgetManager, int[] appWidgetIds) {
+    public void onUpdate(final Context context, AppWidgetManager appWidgetManager, int[] appWidgetIds) {
         ConnectivityManager cm =
-                (ConnectivityManager)context.getSystemService(Context.CONNECTIVITY_SERVICE);
+                (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
 
         NetworkInfo activeNetwork = cm.getActiveNetworkInfo();
 
         if (activeNetwork != null && activeNetwork.isConnected()) {
-            new AnalogWidgetTask(context).execute();
+            getOpeningStatus(context);
         }
     }
 
     @Override
-    public void onReceive(Context context, Intent intent) {
+    public void onReceive(final Context context, Intent intent) {
         super.onReceive(context, intent);
 
         if (SYNC_CLICKED.equals(intent.getAction())) {
             ConnectivityManager cm =
-                    (ConnectivityManager)context.getSystemService(Context.CONNECTIVITY_SERVICE);
+                    (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
 
             NetworkInfo activeNetwork = cm.getActiveNetworkInfo();
 
             if (activeNetwork != null && activeNetwork.isConnected()) {
-                new AnalogWidgetTask(context).execute();
+                getOpeningStatus(context);
             } else {
                 Toast.makeText(context, "No connection available for refresh", Toast.LENGTH_SHORT).show();
             }
@@ -72,75 +75,59 @@ public class AnalogWidget extends AppWidgetProvider {
         return PendingIntent.getBroadcast(context, 0, intent, 0);
     }
 
-    private class AnalogWidgetTask extends AsyncTask<Void, Void, Boolean> {
-        private final Context mContext;
-
-        public AnalogWidgetTask(Context context) {
-            mContext = context;
-        }
-
-        @Override
-        protected Boolean doInBackground(Void... params) {
-            switch (new AnalogDownloader().isOpen()) {
-                case OPEN:
-                    return true;
-                case UNKNOWN:
-                    cancel(true);
-                case CLOSED:
-                default:
-                    return false;
-            }
-        }
-
-        @Override
-        protected void onPostExecute(final Boolean param) {
-            super.onPostExecute(param);
-            final AppWidgetManager appWidgetManager = AppWidgetManager.getInstance(mContext);
-            final int[] appWidgetIds = appWidgetManager.getAppWidgetIds(new ComponentName(mContext, AnalogWidget.class));
-            final RemoteViews views = new RemoteViews(mContext.getPackageName(), R.layout.analog_widget);
-            views.setTextViewText(R.id.appwidget_text, mContext.getText(R.string.refreshing_analog));
-            views.setTextColor(R.id.appwidget_text, ContextCompat.getColor(mContext, android.R.color.primary_text_dark));
-            // Instruct the widget manager to update the widget
-            for (int appWidgetId : appWidgetIds) {
-                appWidgetManager.updateAppWidget(appWidgetId, views);
-            }
-
-            Handler handler = new Handler();
-            handler.postDelayed(new Runnable() {
-                @Override
-                public void run() {
-                    CharSequence widgetText;
-                    if (param) {
-                        widgetText = mContext.getString(R.string.widget_open_analog);
-                        views.setTextColor(R.id.appwidget_text, ContextCompat.getColor(mContext, android.R.color.holo_green_light));
-                    } else {
-                        widgetText = mContext.getString(R.string.widget_closed_analog);
-                        views.setTextColor(R.id.appwidget_text, ContextCompat.getColor(mContext, android.R.color.holo_red_light));
+    private void getOpeningStatus(final Context context) {
+        AnalogClient.getInstance().isOpen(
+                new Action1<OpeningStatus>() {
+                    @Override
+                    public void call(OpeningStatus openingStatus) {
+                        handleIsOpen(context, openingStatus);
                     }
-
-                    views.setTextViewText(R.id.appwidget_text, widgetText);
-                    views.setOnClickPendingIntent(R.id.appwidget_text, getPendingSelfIntent(mContext));
-                    // Instruct the widget manager to update the widget
-                    for (int appWidgetId : appWidgetIds) {
-                        appWidgetManager.updateAppWidget(appWidgetId, views);
+                },
+                new Action1<Throwable>() {
+                    @Override
+                    public void call(Throwable throwable) {
+                        handleError(context);
                     }
-                }
-            }, 500);
+                });
+    }
+
+    private void handleError(Context mContext) {
+        AppWidgetManager appWidgetManager = AppWidgetManager.getInstance(mContext);
+        RemoteViews views = new RemoteViews(mContext.getPackageName(), R.layout.analog_widget);
+        int[] appWidgetIds = appWidgetManager.getAppWidgetIds(new ComponentName(mContext, AnalogWidget.class));
+        views.setTextViewText(R.id.appwidget_text, "Error");
+        views.setOnClickPendingIntent(R.id.appwidget_text, getPendingSelfIntent(mContext));
+        // Instruct the widget manager to update the widget
+        for (int appWidgetId : appWidgetIds) {
+            appWidgetManager.updateAppWidget(appWidgetId, views);
+        }
+    }
+
+    private void handleIsOpen(final Context mContext, final OpeningStatus openingStatus) {
+        final AppWidgetManager appWidgetManager = AppWidgetManager.getInstance(mContext);
+        final int[] appWidgetIds = appWidgetManager.getAppWidgetIds(new ComponentName(mContext, AnalogWidget.class));
+        final RemoteViews views = new RemoteViews(mContext.getPackageName(), R.layout.analog_widget);
+        views.setTextViewText(R.id.appwidget_text, mContext.getText(R.string.refreshing_analog));
+        views.setTextColor(R.id.appwidget_text, ContextCompat.getColor(mContext, android.R.color.primary_text_dark));
+        // Instruct the widget manager to update the widget
+        for (int appWidgetId : appWidgetIds) {
+            appWidgetManager.updateAppWidget(appWidgetId, views);
         }
 
-        @Override
-        protected void onCancelled() {
-            super.onCancelled();
-            AppWidgetManager appWidgetManager = AppWidgetManager.getInstance(mContext);
-            RemoteViews views = new RemoteViews(mContext.getPackageName(), R.layout.analog_widget);
-            int[] appWidgetIds = appWidgetManager.getAppWidgetIds(new ComponentName(mContext, AnalogWidget.class));
-            views.setTextViewText(R.id.appwidget_text, "Error");
-            views.setOnClickPendingIntent(R.id.appwidget_text, getPendingSelfIntent(mContext));
-            // Instruct the widget manager to update the widget
-            for (int appWidgetId : appWidgetIds) {
-                appWidgetManager.updateAppWidget(appWidgetId, views);
-            }
+        CharSequence widgetText;
+        if (openingStatus.open) {
+            widgetText = mContext.getString(R.string.widget_open_analog);
+            views.setTextColor(R.id.appwidget_text, ContextCompat.getColor(mContext, android.R.color.holo_green_light));
+        } else {
+            widgetText = mContext.getString(R.string.widget_closed_analog);
+            views.setTextColor(R.id.appwidget_text, ContextCompat.getColor(mContext, android.R.color.holo_red_light));
+        }
+
+        views.setTextViewText(R.id.appwidget_text, widgetText);
+        views.setOnClickPendingIntent(R.id.appwidget_text, getPendingSelfIntent(mContext));
+        // Instruct the widget manager to update the widget
+        for (int appWidgetId : appWidgetIds) {
+            appWidgetManager.updateAppWidget(appWidgetId, views);
         }
     }
 }
-
