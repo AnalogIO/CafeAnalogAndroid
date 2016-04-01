@@ -17,7 +17,6 @@
 package dk.cafeanalog;
 
 
-import android.content.Context;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
@@ -28,7 +27,6 @@ import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
 import android.widget.TextSwitcher;
 
 import java.util.List;
@@ -40,7 +38,6 @@ public class IsOpenFragment extends Fragment {
     private long mLastTime;
     private TextSwitcher mOpenSwitcher, mNamesSwitcher;
     private AnalogActivityTask mIsOpenTask;
-    private ShowOpening mParent;
     private boolean mVisible;
 
     @Override
@@ -55,7 +52,7 @@ public class IsOpenFragment extends Fragment {
         mOpenSwitcher.setFactory(new TextSwitcher.ViewFactory() {
             @Override
             public View makeView() {
-                AppCompatTextView textView = new AppCompatTextView(getContext());
+                AppCompatTextView textView = new AppCompatTextView(getActivity());
                 textView.setTextSize(TypedValue.COMPLEX_UNIT_SP, 30);
                 textView.setGravity(Gravity.CENTER_HORIZONTAL);
                 return textView;
@@ -69,7 +66,7 @@ public class IsOpenFragment extends Fragment {
         mNamesSwitcher.setFactory(new TextSwitcher.ViewFactory() {
             @Override
             public View makeView() {
-                AppCompatTextView textView = new AppCompatTextView(getContext());
+                AppCompatTextView textView = new AppCompatTextView(getActivity());
                 textView.setTextSize(TypedValue.COMPLEX_UNIT_SP, 20);
                 textView.setGravity(Gravity.CENTER_HORIZONTAL);
                 return textView;
@@ -85,36 +82,7 @@ public class IsOpenFragment extends Fragment {
             }
         });
 
-        Button button = (Button) v.findViewById(R.id.openings_button);
-
-        if (button != null) {
-            button.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    mParent.showOpening();
-                }
-            });
-        }
-
         return v;
-    }
-
-    @Override
-    public void onAttach(Context context) {
-        super.onAttach(context);
-
-        if (context instanceof ShowOpening) {
-            mParent = (ShowOpening) context;
-        } else {
-            throw new RuntimeException("Context must be instance of ShowOpening");
-        }
-    }
-
-    @Override
-    public void onDetach() {
-        super.onDetach();
-
-        mParent = null;
     }
 
     @Override
@@ -160,6 +128,11 @@ public class IsOpenFragment extends Fragment {
                                     @Override
                                     public void run() {
                                         if (mVisible) {
+                                            if (opening.getNames().size() == 1) {
+                                                mNamesSwitcher.setText(opening.getNames().get(0));
+                                                return;
+                                            }
+
                                             StringBuilder builder = new StringBuilder();
                                             List<String> names = opening.getNames();
                                             for (int i = 0; i < names.size() - 1; i++) {
@@ -206,9 +179,5 @@ public class IsOpenFragment extends Fragment {
     public void onPause() {
         mVisible = false;
         super.onPause();
-    }
-
-    public interface ShowOpening {
-        void showOpening();
     }
 }

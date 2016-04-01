@@ -80,7 +80,7 @@ public class AnalogDownloader {
 
     public Opening getCurrentOpening() throws JSONException, ParseException, IOException {
         if (System.currentTimeMillis() - mLastGet > TIME_BETWEEN_DOWNLOADS || mOpeningsCache == null) {
-            getOpenings();
+            getOpenings(true);
         }
         Date now = new Date(System.currentTimeMillis());
         for (Opening opening : mOpeningsCache) {
@@ -91,8 +91,8 @@ public class AnalogDownloader {
         return null;
     }
 
-    private ArrayList<Opening> getOpenings() throws IOException, JSONException, ParseException {
-        if (System.currentTimeMillis() - mLastGet < TIME_BETWEEN_DOWNLOADS && mOpeningsCache != null) {
+    private ArrayList<Opening> getOpenings(boolean forceRefresh) throws IOException, JSONException, ParseException {
+        if (!forceRefresh && System.currentTimeMillis() - mLastGet < TIME_BETWEEN_DOWNLOADS && mOpeningsCache != null) {
             return mOpeningsCache;
         }
         mLastGet = System.currentTimeMillis();
@@ -130,8 +130,8 @@ public class AnalogDownloader {
         return openings;
     }
 
-    public List<DayOfOpenings> getDaysOfOpenings() throws JSONException, ParseException, IOException {
-        ArrayList<Opening> openings = getOpenings();
+    public ArrayList<DayOfOpenings> getDaysOfOpenings(boolean forceRefresh) throws JSONException, ParseException, IOException {
+        ArrayList<Opening> openings = getOpenings(forceRefresh);
 
         Collections.sort(openings, new Comparator<Opening>() {
             @Override

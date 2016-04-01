@@ -3,13 +3,14 @@
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:orientation="vertical"
-    android:layout_width="wrap_content"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
     android:layout_gravity="center"
     android:paddingTop="5dp"
     android:paddingBottom="5dp"
     android:layout_margin="15dp"
-    android:layout_height="wrap_content"
-    style="@style/BoxedWrapperActive" >
+    android:clickable="true"
+    style="@style/BoxedWrapper" >
 
     <TextView
         android:id="@+id/day_of_week"
@@ -17,42 +18,60 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:textSize="25sp"
+        android:paddingBottom="8dp"
         tools:text="Monday" />
 
     <LinearLayout
+        android:layout_gravity="center"
         android:orientation="horizontal"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content">
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="3dp"
+        android:layout_marginStart="3dp"
+        android:layout_marginRight="3dp"
+        android:layout_marginEnd="3dp">
 
         <TextView
-            android:padding="2dp"
-            android:gravity="center"
-            android:layout_marginLeft="10dp"
-            android:layout_marginRight="10dp"
             android:id="@+id/morning"
-            android:layout_width="100dp"
-            android:layout_height="wrap_content"
-            style="@style/BoxedWrapperActive"
-            android:text="9:00-11:30"/>
-        <TextView
-            android:padding="2dp"
+            android:padding="3dp"
+            android:layout_marginStart="5dp"
+            android:layout_marginLeft="5dp"
+            android:layout_marginEnd="5dp"
+            android:layout_marginRight="5dp"
             android:gravity="center"
-            android:layout_marginLeft="10dp"
-            android:layout_marginRight="10dp"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="2"
+            android:textSize="14sp"
+            style="@style/BoxedWrapper"
+            android:text="@string/morning_hours"/>
+        <TextView
             android:id="@+id/noon"
-            android:layout_width="100dp"
-            android:layout_height="wrap_content"
-            style="@style/BoxedWrapperActive"
-            android:text="11:30-14:30"/>
-        <TextView
-            android:padding="2dp"
+            android:padding="3dp"
             android:gravity="center"
-            android:layout_marginLeft="10dp"
-            android:layout_marginRight="10dp"
-            android:id="@+id/afternoon"
-            android:layout_width="100dp"
+            android:layout_marginStart="5dp"
+            android:layout_marginLeft="5dp"
+            android:layout_marginEnd="5dp"
+            android:layout_marginRight="5dp"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            style="@style/BoxedWrapperActive"
-            android:text="14:30-17:30" />
+            android:layout_weight="2"
+            android:textSize="14sp"
+            style="@style/BoxedWrapper"
+            android:text="@string/noon_hours"/>
+        <TextView
+            android:id="@+id/afternoon"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="2"
+            style="@style/BoxedWrapper"
+            android:padding="3dp"
+            android:gravity="center"
+            android:text="@string/afternoon_hours"
+            android:textSize="14sp"
+            android:layout_marginStart="5dp"
+            android:layout_marginLeft="5dp"
+            android:layout_marginEnd="5dp"
+            android:layout_marginRight="5dp" />
     </LinearLayout>
 </LinearLayout>
