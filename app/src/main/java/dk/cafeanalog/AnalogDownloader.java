@@ -16,7 +16,6 @@
 
 package dk.cafeanalog;
 
-import android.util.JsonReader;
 import android.util.Log;
 
 import org.json.JSONArray;
@@ -44,39 +43,6 @@ public class AnalogDownloader {
 
     private ArrayList<Opening> mOpeningsCache;
     private long mLastGet;
-
-    public enum AnalogStatus {
-        OPEN,
-        CLOSED,
-        UNKNOWN
-    }
-
-    public AnalogStatus isOpen() {
-        HttpURLConnection connection = null;
-        JsonReader reader = null;
-
-        try {
-            URL url = new URL("http", "cafeanalog.dk", "api/open");
-            connection = (HttpURLConnection) url.openConnection();
-            connection.setRequestMethod("GET");
-            connection.connect();
-            reader = new JsonReader(new InputStreamReader(connection.getInputStream()));
-            reader.beginObject();
-            while (!reader.nextName().equals("open")) { reader.skipValue(); }
-            return reader.nextBoolean() ? AnalogStatus.OPEN : AnalogStatus.CLOSED;
-        } catch (IOException e) {
-            return AnalogStatus.UNKNOWN;
-        } finally {
-            if (connection != null)
-                connection.disconnect();
-            if (reader != null) {
-                try {
-                    reader.close();
-                } catch (IOException ignored) {
-                }
-            }
-        }
-    }
 
     public Opening getCurrentOpening() throws JSONException, ParseException, IOException {
         if (System.currentTimeMillis() - mLastGet > TIME_BETWEEN_DOWNLOADS || mOpeningsCache == null) {
