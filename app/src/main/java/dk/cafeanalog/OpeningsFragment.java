@@ -17,10 +17,10 @@
 package dk.cafeanalog;
 
 import android.content.Context;
-import android.os.Build;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
-import android.support.v4.content.ContextCompat;
+import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
@@ -75,8 +75,37 @@ public class OpeningsFragment extends Fragment {
 
         View view = inflater.inflate(R.layout.fragment_opening_list, container, false);
 
-        RecyclerView listView = (RecyclerView) view.findViewById(R.id.list);
-        listView.setLayoutManager(new LinearLayoutManager(getContext(), LinearLayoutManager.VERTICAL, false));
+        final SwipeRefreshLayout refresher = (SwipeRefreshLayout) view.findViewById(R.id.refresher);
+        final RecyclerView listView = (RecyclerView) view.findViewById(R.id.list);
+        refresher.setNestedScrollingEnabled(true);
+        refresher.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+            @Override
+            public void onRefresh() {
+                new AsyncTask<Void, Void, ArrayList<DayOfOpenings>>() {
+                    @Override
+                    protected ArrayList<DayOfOpenings> doInBackground(Void... params) {
+                        try {
+                            return new AnalogDownloader().getDaysOfOpenings(true);
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                        return new ArrayList<>();
+                    }
+
+                    @Override
+                    protected void onPostExecute(ArrayList<DayOfOpenings> dayOfOpenings) {
+                        super.onPostExecute(dayOfOpenings);
+                        mOpenings.clear();
+                        mOpenings.addAll(dayOfOpenings);
+                        listView.getAdapter().notifyDataSetChanged();
+                        refresher.setRefreshing(false);
+                    }
+                }.execute();
+            }
+        });
+
+
+        listView.setLayoutManager(new LinearLayoutManager(getActivity(), LinearLayoutManager.VERTICAL, false));
         listView.setAdapter(new RecyclerView.Adapter<DayHolder>() {
             @Override
             public DayHolder onCreateViewHolder(ViewGroup parent, int viewType) {
@@ -90,29 +119,23 @@ public class OpeningsFragment extends Fragment {
 
                 if (day.getMorning()) {
                     holder.morning.setEnabled(true);
-                    setBackground(R.drawable.border, holder.morning);
                 } else {
                     holder.morning.setEnabled(false);
-                    setBackground(R.drawable.border_inactive, holder.morning);
                 }
 
                 if (day.getNoon()) {
                     holder.noon.setEnabled(true);
-                    setBackground(R.drawable.border, holder.noon);
                 } else {
                     holder.noon.setEnabled(false);
-                    setBackground(R.drawable.border_inactive, holder.noon);
                 }
 
                 if (day.getAfternoon()) {
                     holder.afternoon.setEnabled(true);
-                    setBackground(R.drawable.border, holder.afternoon);
                 } else {
                     holder.afternoon.setEnabled(false);
-                    setBackground(R.drawable.border_inactive, holder.afternoon);
                 }
 
-                holder.dayOfWeek.setText(getDayOfWeek(getContext(), day.getDayOfWeek()));
+                holder.dayOfWeek.setText(getDayOfWeek(getActivity(), day.getDayOfWeek()));
             }
 
             @Override
@@ -122,15 +145,6 @@ public class OpeningsFragment extends Fragment {
         });
 
         return view;
-    }
-
-    private void setBackground(int drawable, View v) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
-            v.setBackground(ContextCompat.getDrawable(getContext(), drawable));
-        } else {
-            //noinspection deprecation
-            v.setBackgroundDrawable(ContextCompat.getDrawable(getContext(), drawable));
-        }
     }
 
     @Override

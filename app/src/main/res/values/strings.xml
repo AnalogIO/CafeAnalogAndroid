@@ -15,5 +15,14 @@
     <string name="friday">Friday</string>
     <string name="saturday">Saturday</string>
     <string name="sunday">Sunday</string>
-    <string name="opening_hours_button">Show opening hours</string>
+
+    <string name="drawer_open">Open navigation drawer</string>
+    <string name="drawer_close">Close navigation drawer</string>
+    <string name="morning_hours">9:00–11:30</string>
+    <string name="noon_hours">11:30–14:30</string>
+    <string name="afternoon_hours">14:30–17:30</string>
+    <string-array name="analog_menu_items">
+        <item>Is Analog Open?</item>
+        <item>Opening hours</item>
+    </string-array>
 </resources>
