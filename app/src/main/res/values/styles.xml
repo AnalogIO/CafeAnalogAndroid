@@ -1,12 +1,17 @@
 <resources>
+    <color name="closedColor">#fc00</color>
+    <color name="openColor">#f0c0</color>
 
     <!-- Base application theme. -->
     <style name="AppTheme" parent="Theme.AppCompat">
+        <item name="android:background">#f111</item>
+        <item name="android:textColor">#fccc</item>
         <!-- Customize your theme here. -->
     </style>
 
     <style name="BoxedWrapper" parent="Theme.AppCompat">
         <item name="android:background">@drawable/border</item>
+        <item name="android:textColor">#fccc</item>
     </style>
 
 </resources>

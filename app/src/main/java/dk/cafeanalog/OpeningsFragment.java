@@ -17,7 +17,6 @@
 package dk.cafeanalog;
 
 import android.content.Context;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.widget.SwipeRefreshLayout;
@@ -30,6 +29,9 @@ import android.widget.TextView;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import dk.cafeanalog.networking.AnalogClient;
+import rx.functions.Action1;
 
 /**
  * A fragment representing a list of Items.
@@ -81,26 +83,23 @@ public class OpeningsFragment extends Fragment {
         refresher.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
             public void onRefresh() {
-                new AsyncTask<Void, Void, ArrayList<DayOfOpenings>>() {
-                    @Override
-                    protected ArrayList<DayOfOpenings> doInBackground(Void... params) {
-                        try {
-                            return new AnalogDownloader().getDaysOfOpenings(true);
-                        } catch (Exception e) {
-                            e.printStackTrace();
+                AnalogClient.getInstance().getDaysOfOpenings(
+                        new Action1<List<DayOfOpenings>>() {
+                            @Override
+                            public void call(List<DayOfOpenings> dayOfOpenings) {
+                                mOpenings.clear();
+                                mOpenings.addAll(dayOfOpenings);
+                                listView.getAdapter().notifyDataSetChanged();
+                                refresher.setRefreshing(false);
+                            }
+                        },
+                        new Action1<Throwable>() {
+                            @Override
+                            public void call(Throwable throwable) {
+                                // Ignore
+                            }
                         }
-                        return new ArrayList<>();
-                    }
-
-                    @Override
-                    protected void onPostExecute(ArrayList<DayOfOpenings> dayOfOpenings) {
-                        super.onPostExecute(dayOfOpenings);
-                        mOpenings.clear();
-                        mOpenings.addAll(dayOfOpenings);
-                        listView.getAdapter().notifyDataSetChanged();
-                        refresher.setRefreshing(false);
-                    }
-                }.execute();
+                );
             }
         });
 

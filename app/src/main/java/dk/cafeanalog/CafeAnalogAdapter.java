@@ -25,11 +25,11 @@ public class CafeAnalogAdapter extends Adapter<CafeAnalogAdapter.TextViewHolder>
     }
 
     @Override
-    public void onBindViewHolder(TextViewHolder holder, final int position) {
+    public void onBindViewHolder(final TextViewHolder holder, int position) {
         holder.textView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                mListener.onClick(position);
+                mListener.onClick(holder.getAdapterPosition());
             }
         });
         holder.setText(mMenuItems[position]);

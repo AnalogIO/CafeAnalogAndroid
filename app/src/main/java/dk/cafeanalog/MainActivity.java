@@ -17,7 +17,6 @@
 package dk.cafeanalog;
 
 import android.content.res.Configuration;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
@@ -30,8 +29,10 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 
-import java.util.ArrayList;
 import java.util.List;
+
+import dk.cafeanalog.networking.AnalogClient;
+import rx.functions.Action1;
 
 public class MainActivity extends AppCompatActivity implements CafeAnalogAdapter.OnItemClickListener {
     private static final String IS_OPEN_FRAGMENT = "dk.cafeanalog.MainActivity.IS_OPEN_FRAGMENT",
@@ -117,25 +118,13 @@ public class MainActivity extends AppCompatActivity implements CafeAnalogAdapter
         super.onPause();
     }
 
-    private void getOpenings(final Action<List<DayOfOpenings>> resultFunction) {
-        new AsyncTask<Void, Void, List<DayOfOpenings>>() {
+    private void getOpenings(final Action1<List<DayOfOpenings>> resultFunction) {
+        AnalogClient.getInstance().getDaysOfOpenings(resultFunction, new Action1<Throwable>() {
             @Override
-            protected List<DayOfOpenings> doInBackground(Void... params) {
-                try {
-                    AnalogDownloader downloader = new AnalogDownloader();
-
-                    return downloader.getDaysOfOpenings(false);
-                } catch (Exception ignore) {
-                    ignore.printStackTrace();
-                }
-                return new ArrayList<>();
+            public void call(Throwable throwable) {
+                // Ignore
             }
-
-            @Override
-            protected void onPostExecute(List<DayOfOpenings> openings) {
-                resultFunction.run(openings);
-            }
-        }.execute();
+        });
     }
 
     @Override
@@ -144,15 +133,6 @@ public class MainActivity extends AppCompatActivity implements CafeAnalogAdapter
         getMenuInflater().inflate(R.menu.navigation_drawer, menu);
         return true;
     }
-//
-//    /* Called whenever we call invalidateOptionsMenu() */
-//    @Override
-//    public boolean onPrepareOptionsMenu(Menu menu) {
-//        // If the nav drawer is open, hide action items related to the content view
-//        boolean drawerOpen = mDrawerLayout.isDrawerOpen(mDrawerList);
-//        //menu.findItem(R.id.action_websearch).setVisible(!drawerOpen);
-//        return super.onPrepareOptionsMenu(menu);
-//    }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
@@ -161,22 +141,9 @@ public class MainActivity extends AppCompatActivity implements CafeAnalogAdapter
         if (mDrawerToggle.onOptionsItemSelected(item)) {
             return true;
         }
+
         // Handle action buttons
-        switch (item.getItemId()) {
-            /*case R.id.action_websearch:
-                // create intent to perform web search for this planet
-                Intent intent = new Intent(Intent.ACTION_WEB_SEARCH);
-                intent.putExtra(SearchManager.QUERY, getActionBar().getTitle());
-                // catch event that there's no activity to handle intent
-                if (intent.resolveActivity(getPackageManager()) != null) {
-                    startActivity(intent);
-                } else {
-                    Toast.makeText(this, R.string.app_not_available, Toast.LENGTH_LONG).show();
-                }
-                return true;*/
-            default:
-                return super.onOptionsItemSelected(item);
-        }
+        return super.onOptionsItemSelected(item);
     }
 
     @Override
@@ -209,30 +176,36 @@ public class MainActivity extends AppCompatActivity implements CafeAnalogAdapter
     public void onClick(int position) {
         switch (position) {
             case 0: // Front page
-                getSupportFragmentManager().popBackStack(null, FragmentManager.POP_BACK_STACK_INCLUSIVE);
-                getSupportFragmentManager()
-                        .beginTransaction()
-                        .replace(R.id.main_layout, new IsOpenFragment())
-                        .commit();
+                if (getSupportFragmentManager().getBackStackEntryCount() == 1) {
+                    getSupportFragmentManager().popBackStack(null, FragmentManager.POP_BACK_STACK_INCLUSIVE);
+                    getSupportFragmentManager()
+                            .beginTransaction()
+                            .replace(R.id.main_layout, new IsOpenFragment(), IS_OPEN_FRAGMENT)
+                            .commit();
+                }
                 mDrawerLayout.closeDrawers();
                 break;
             case 1: // Opening Hours
-                getOpenings(
-                        new Action<List<DayOfOpenings>>() {
-                            @Override
-                            public void run(List<DayOfOpenings> openings) {
-                                if (mVisible) {
-                                    getSupportFragmentManager()
-                                            .beginTransaction()
-                                            .replace(R.id.main_layout, OpeningsFragment.newInstance(openings), OPENING_FRAGMENT)
-                                            .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN)
-                                            .addToBackStack(null)
-                                            .commit();
-                                    mDrawerLayout.closeDrawers();
+                if (getSupportFragmentManager().getBackStackEntryCount() == 0) {
+                    getOpenings(
+                            new Action1<List<DayOfOpenings>>() {
+                                @Override
+                                public void call(List<DayOfOpenings> openings) {
+                                    if (mVisible) {
+                                        getSupportFragmentManager()
+                                                .beginTransaction()
+                                                .replace(R.id.main_layout, OpeningsFragment.newInstance(openings), OPENING_FRAGMENT)
+                                                .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN)
+                                                .addToBackStack(OPENING_FRAGMENT)
+                                                .commit();
+                                        mDrawerLayout.closeDrawers();
+                                    }
                                 }
                             }
-                        }
-                );
+                    );
+                } else {
+                    mDrawerLayout.closeDrawers();
+                }
                 break;
         }
     }

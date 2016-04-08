@@ -14,9 +14,12 @@
  * limitations under the License.
  */
 
-package dk.cafeanalog;
+package dk.cafeanalog.networking;
 
-@SuppressWarnings("ALL")
-public interface Action<T> {
-    void run(T param);
+import java.util.Date;
+import java.util.List;
+
+public class Opening {
+    public Date Open, Close;
+    public List<String> Employees;
 }

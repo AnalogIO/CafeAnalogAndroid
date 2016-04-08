@@ -17,7 +17,6 @@
 package dk.cafeanalog;
 
 
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.content.ContextCompat;
@@ -31,13 +30,16 @@ import android.widget.TextSwitcher;
 
 import java.util.List;
 
+import dk.cafeanalog.networking.AnalogClient;
+import dk.cafeanalog.networking.Opening;
+import rx.functions.Action1;
+
 /**
  * A simple {@link Fragment} subclass.
  */
 public class IsOpenFragment extends Fragment {
     private long mLastTime;
     private TextSwitcher mOpenSwitcher, mNamesSwitcher;
-    private AnalogActivityTask mIsOpenTask;
     private boolean mVisible;
 
     @Override
@@ -99,80 +101,63 @@ public class IsOpenFragment extends Fragment {
         click();
     }
 
-    private class AnalogActivityTask extends AsyncTask<Void, Void, Opening> {
-
-        @Override
-        protected Opening doInBackground(Void... params) {
-            try {
-                return new AnalogDownloader().getCurrentOpening();
-            } catch (Exception e) {
-                e.printStackTrace();
-                cancel(true);
-                return null;
-            }
-        }
-
-        @Override
-        protected void onPostExecute(final Opening opening) {
-            super.onPostExecute(opening);
-            if (mVisible) {
-                if (mOpenSwitcher != null) { // The user might exit the application without waiting for response.
-                    AppCompatTextView tv = (AppCompatTextView) mOpenSwitcher.getNextView();
-                    if (opening != null) {
-                        tv.setTextColor(ContextCompat.getColor(getContext(), android.R.color.holo_green_light));
-                        mOpenSwitcher.setText(getContext().getResources().getText(R.string.open_analog));
-
-                        if (mVisible) {
-                            if (mNamesSwitcher != null) {
-                                mNamesSwitcher.postDelayed(new Runnable() {
-                                    @Override
-                                    public void run() {
-                                        if (mVisible) {
-                                            if (opening.getNames().size() == 1) {
-                                                mNamesSwitcher.setText(opening.getNames().get(0));
-                                                return;
-                                            }
-
-                                            StringBuilder builder = new StringBuilder();
-                                            List<String> names = opening.getNames();
-                                            for (int i = 0; i < names.size() - 1; i++) {
-                                                builder.append(names.get(i)).append(", ");
-                                            }
-                                            builder.replace(builder.length() - 2, builder.length(), " &")
-                                                    .append(" ").append(names.get(names.size() - 1));
-
-                                            mNamesSwitcher.setText(builder);
-                                        }
-                                    }
-                                }, 100);
-                            }
-                        }
-                    } else {
-                        tv.setTextColor(ContextCompat.getColor(getContext(), android.R.color.holo_red_light));
-                        mOpenSwitcher.setText(getContext().getResources().getText(R.string.closed_analog));
-                    }
-                }
-            }
-        }
-
-        @Override
-        protected void onCancelled() {
-            super.onCancelled();
-            if (mVisible) {
-                if (mOpenSwitcher != null)
-                    mOpenSwitcher.setText(mOpenSwitcher.getContext().getResources().getString(R.string.error_download));
-            }
-        }
-    }
-
     private void click() {
         if (Math.abs(System.currentTimeMillis() - mLastTime) < 400) return;
         mLastTime = System.currentTimeMillis();
 
-        if (mIsOpenTask == null || mIsOpenTask.getStatus() == AsyncTask.Status.FINISHED) {
-            mIsOpenTask = new AnalogActivityTask();
-            mIsOpenTask.execute();
-        }
+        AnalogClient.getInstance().getCurrentOpening(
+                new Action1<Opening>() {
+                    @Override
+                    public void call(final Opening opening) {
+                        if (mVisible) {
+                            if (mOpenSwitcher != null) { // The user might exit the application without waiting for response.
+                                AppCompatTextView tv = (AppCompatTextView) mOpenSwitcher.getNextView();
+                                if (opening != null) {
+                                    tv.setTextColor(ContextCompat.getColor(getContext(), R.color.openColor));
+                                    mOpenSwitcher.setText(getContext().getResources().getText(R.string.open_analog));
+
+                                    if (mVisible) {
+                                        if (mNamesSwitcher != null) {
+                                            mNamesSwitcher.postDelayed(new Runnable() {
+                                                @Override
+                                                public void run() {
+                                                    if (mVisible) {
+                                                        if (opening.Employees.size() == 1) {
+                                                            mNamesSwitcher.setText(opening.Employees.get(0));
+                                                            return;
+                                                        }
+
+                                                        StringBuilder builder = new StringBuilder();
+                                                        List<String> names = opening.Employees;
+                                                        for (int i = 0; i < names.size() - 1; i++) {
+                                                            builder.append(names.get(i)).append(", ");
+                                                        }
+                                                        builder.replace(builder.length() - 2, builder.length(), " &")
+                                                                .append(" ").append(names.get(names.size() - 1));
+
+                                                        mNamesSwitcher.setText(builder);
+                                                    }
+                                                }
+                                            }, 100);
+                                        }
+                                    }
+                                } else {
+                                    tv.setTextColor(ContextCompat.getColor(getContext(), R.color.closedColor));
+                                    mOpenSwitcher.setText(getContext().getResources().getText(R.string.closed_analog));
+                                }
+                            }
+                        }
+                    }
+                },
+                new Action1<Throwable>() {
+                    @Override
+                    public void call(Throwable throwable) {
+                        if (mVisible) {
+                            if (mOpenSwitcher != null)
+                                mOpenSwitcher.setText(mOpenSwitcher.getContext().getResources().getString(R.string.error_download));
+                        }
+                    }
+                });
     }
 
     @Override
