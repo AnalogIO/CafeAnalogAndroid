@@ -127,15 +127,7 @@ public class IsOpenFragment extends Fragment {
                                                             return;
                                                         }
 
-                                                        StringBuilder builder = new StringBuilder();
-                                                        List<String> names = opening.Employees;
-                                                        for (int i = 0; i < names.size() - 1; i++) {
-                                                            builder.append(names.get(i)).append(", ");
-                                                        }
-                                                        builder.replace(builder.length() - 2, builder.length(), " &")
-                                                                .append(" ").append(names.get(names.size() - 1));
-
-                                                        mNamesSwitcher.setText(builder);
+                                                        mNamesSwitcher.setText(opening.formatNames());
                                                     }
                                                 }
                                             }, 100);

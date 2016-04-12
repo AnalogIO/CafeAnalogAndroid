@@ -16,10 +16,27 @@
 
 package dk.cafeanalog.networking;
 
+import android.support.annotation.NonNull;
+
 import java.util.Date;
 import java.util.List;
 
-public class Opening {
+public class Opening implements Comparable<Opening>{
     public Date Open, Close;
     public List<String> Employees;
+
+    public String formatNames() {
+        StringBuilder builder = new StringBuilder();
+        for (int i = 0; i < Employees.size() - 1; i++) {
+            builder.append(Employees.get(i)).append(", ");
+        }
+        builder.replace(builder.length() - 2, builder.length(), " &")
+                .append(" ").append(Employees.get(Employees.size() - 1));
+        return builder.toString();
+    }
+
+    @Override
+    public int compareTo(@NonNull Opening another) {
+        return Open.compareTo(another.Open);
+    }
 }
