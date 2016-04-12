@@ -9,9 +9,25 @@
         <!-- Customize your theme here. -->
     </style>
 
+    <style name="SmallMargin" parent="Theme.AppCompat">
+        <item name="android:orientation">horizontal</item>
+        <item name="android:layout_marginLeft">3dp</item>
+        <item name="android:layout_marginRight">3dp</item>
+    </style>
+
     <style name="BoxedWrapper" parent="Theme.AppCompat">
         <item name="android:background">@drawable/border</item>
         <item name="android:textColor">#fccc</item>
+        <item name="android:layout_marginLeft">5dp</item>
+        <item name="android:layout_marginRight">5dp</item>
+        <item name="android:padding">3dp</item>
+        <item name="android:gravity">center</item>
+        <item name="android:textSize">14sp</item>
     </style>
 
+    <style name="WeekDayView" parent="Theme.AppCompat">
+        <item name="android:textSize">25sp</item>
+        <item name="android:paddingBottom">8dp</item>
+        <item name="android:layout_gravity">center</item>
+    </style>
 </resources>

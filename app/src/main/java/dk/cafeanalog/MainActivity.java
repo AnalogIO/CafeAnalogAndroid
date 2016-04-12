@@ -16,7 +16,9 @@
 
 package dk.cafeanalog;
 
+import android.content.Intent;
 import android.content.res.Configuration;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
@@ -206,6 +208,11 @@ public class MainActivity extends AppCompatActivity implements CafeAnalogAdapter
                 } else {
                     mDrawerLayout.closeDrawers();
                 }
+                break;
+            case 2: // Wan't to help out?
+                Intent gitHub = new Intent(Intent.ACTION_VIEW, Uri.parse(getString(R.string.url_app)));
+                startActivity(gitHub);
+                mDrawerLayout.closeDrawers();
                 break;
         }
     }

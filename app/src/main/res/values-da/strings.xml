@@ -21,6 +21,7 @@
     <string-array name="analog_menu_items">
         <item>Er Analog Åben?</item>
         <item>Åbningstider</item>
+        <item>Har du gode idéer?</item>
     </string-array>
     <string name="morning_hours" tools:ignore="TypographyDashes">9:00-11:30</string>
     <string name="noon_hours" tools:ignore="TypographyDashes">11:30-14:30</string>

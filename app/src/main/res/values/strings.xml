@@ -21,8 +21,10 @@
     <string name="morning_hours">9:00–11:30</string>
     <string name="noon_hours">11:30–14:30</string>
     <string name="afternoon_hours">14:30–17:30</string>
+    <string name="url_app" translatable="false">https://github.com/AnalogIO/CafeAnalogAndroid</string>
     <string-array name="analog_menu_items">
         <item>Is Analog Open?</item>
         <item>Opening hours</item>
+        <item>Wan\'t to help out?</item>
     </string-array>
 </resources>

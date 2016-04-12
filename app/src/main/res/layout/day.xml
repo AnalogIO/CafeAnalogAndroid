@@ -8,54 +8,33 @@
     android:layout_gravity="center"
     android:paddingTop="5dp"
     android:paddingBottom="5dp"
-    android:layout_margin="15dp"
-    android:clickable="true" >
+    android:layout_margin="15dp" >
 
     <TextView
         android:id="@+id/day_of_week"
-        android:layout_gravity="center_horizontal"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:textSize="25sp"
-        android:paddingBottom="8dp"
+        style="@style/WeekDayView"
         tools:text="Monday" />
 
     <LinearLayout
         android:layout_gravity="center"
-        android:orientation="horizontal"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginLeft="3dp"
-        android:layout_marginStart="3dp"
-        android:layout_marginRight="3dp"
-        android:layout_marginEnd="3dp">
+        style="@style/SmallMargin" >
 
         <TextView
             android:id="@+id/morning"
-            android:padding="3dp"
-            android:layout_marginStart="5dp"
-            android:layout_marginLeft="5dp"
-            android:layout_marginEnd="5dp"
-            android:layout_marginRight="5dp"
-            android:gravity="center"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="2"
-            android:textSize="14sp"
             style="@style/BoxedWrapper"
             android:text="@string/morning_hours"/>
         <TextView
             android:id="@+id/noon"
-            android:padding="3dp"
-            android:gravity="center"
-            android:layout_marginStart="5dp"
-            android:layout_marginLeft="5dp"
-            android:layout_marginEnd="5dp"
-            android:layout_marginRight="5dp"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="2"
-            android:textSize="14sp"
             style="@style/BoxedWrapper"
             android:text="@string/noon_hours"/>
         <TextView
@@ -64,13 +43,6 @@
             android:layout_height="wrap_content"
             android:layout_weight="2"
             style="@style/BoxedWrapper"
-            android:padding="3dp"
-            android:gravity="center"
-            android:text="@string/afternoon_hours"
-            android:textSize="14sp"
-            android:layout_marginStart="5dp"
-            android:layout_marginLeft="5dp"
-            android:layout_marginEnd="5dp"
-            android:layout_marginRight="5dp" />
+            android:text="@string/afternoon_hours" />
     </LinearLayout>
 </LinearLayout>
