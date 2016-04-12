@@ -28,8 +28,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextSwitcher;
 
-import java.util.List;
-
 import dk.cafeanalog.networking.AnalogClient;
 import dk.cafeanalog.networking.Opening;
 import rx.functions.Action1;

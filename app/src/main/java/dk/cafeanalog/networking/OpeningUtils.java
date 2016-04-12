@@ -1,21 +1,32 @@
+/*
+ * Copyright 2016 Analog IO
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package dk.cafeanalog.networking;
 
 import android.util.Log;
 
-import org.json.JSONException;
-
-import java.io.IOException;
-import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
 
 import dk.cafeanalog.DayOfOpenings;
 
-/**
+/*
  * Created by HansP on 11-04-2016.
  */
 public class OpeningUtils {
@@ -23,13 +34,14 @@ public class OpeningUtils {
 
         /**
          * Get the current opening status based on a list of openings
-         * @param openings
-         * @return
+         * @param openings The list of openings to filter on.
+         * @return An opening representing the current opening. If no such
+         * opening exists, null is returned.
          */
         public static Opening getCurrentOpening(List<Opening> openings) {
             Date now = new Date(System.currentTimeMillis());
             for (Opening opening : openings) {
-                if (now.after(opening.Open) && now.before(opening.Close)) {
+                if (opening.Open.before(now) && opening.Close.after(now)) {
                     return opening;
                 }
             }
@@ -38,8 +50,9 @@ public class OpeningUtils {
 
         /**
          * Get the openings time for each day based on a list of openings
-         * @param openings
-         * @return
+         * @param openings The list of openings to transform.
+         * @return A list of DayOfOpenings which for each day represented
+         * contains an entry with the opening hours for that day.
          */
         public static List<DayOfOpenings> getDaysOfOpenings(List<Opening> openings) {
 
