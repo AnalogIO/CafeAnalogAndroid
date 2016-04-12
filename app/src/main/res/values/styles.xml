@@ -1,5 +1,5 @@
 <resources>
-    <color name="closedColor">#fc00</color>
+    <color name="closedColor">#ffee2222</color>
     <color name="openColor">#f0c0</color>
 
     <!-- Base application theme. -->
