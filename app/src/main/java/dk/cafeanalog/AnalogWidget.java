@@ -117,10 +117,10 @@ public class AnalogWidget extends AppWidgetProvider {
         CharSequence widgetText;
         if (openingStatus.open) {
             widgetText = mContext.getString(R.string.widget_open_analog);
-            views.setTextColor(R.id.appwidget_text, ContextCompat.getColor(mContext, android.R.color.holo_green_light));
+            views.setTextColor(R.id.appwidget_text, ContextCompat.getColor(mContext, R.color.openColor));
         } else {
             widgetText = mContext.getString(R.string.widget_closed_analog);
-            views.setTextColor(R.id.appwidget_text, ContextCompat.getColor(mContext, android.R.color.holo_red_light));
+            views.setTextColor(R.id.appwidget_text, ContextCompat.getColor(mContext, R.color.closedColor));
         }
 
         views.setTextViewText(R.id.appwidget_text, widgetText);
