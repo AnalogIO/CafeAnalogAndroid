@@ -1,0 +1,15 @@
+<resources>
+    <declare-styleable name="OpeningHoursView">
+        <attr name="show_from_hour" format="integer" />
+        <attr name="show_to_hour" format="integer" />
+        <attr name="opening_hour" format="integer" />
+        <attr name="closing_hour" format="integer" />
+        <attr name="open_color" format="color" />
+        <attr name="closed_color" format="color" />
+        <attr name="border_color" format="color" />
+        <attr name="text_color" format="color" />
+        <attr name="text_distance" format="dimension" />
+        <attr name="text_size" format="dimension" />
+        <attr name="block_height" format="dimension" />
+    </declare-styleable>
+</resources>

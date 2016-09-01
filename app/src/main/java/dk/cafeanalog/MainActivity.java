@@ -33,6 +33,8 @@ import android.view.View;
 
 import java.util.List;
 
+import butterknife.BindView;
+import butterknife.ButterKnife;
 import dk.cafeanalog.networking.AnalogClient;
 import rx.functions.Action1;
 
@@ -40,7 +42,8 @@ public class MainActivity extends AppCompatActivity implements CafeAnalogAdapter
     private static final String IS_OPEN_FRAGMENT = "dk.cafeanalog.MainActivity.IS_OPEN_FRAGMENT",
                                 OPENING_FRAGMENT = "dk.cafeanalog.MainActivity.OPENING_FRAGMENT";
 
-    private DrawerLayout mDrawerLayout;
+    @BindView(R.id.drawer_layout) DrawerLayout mDrawerLayout;
+    @BindView(R.id.left_drawer) RecyclerView mDrawerList;
     private ActionBarDrawerToggle mDrawerToggle;
 
     private CharSequence mDrawerTitle;
@@ -61,12 +64,8 @@ public class MainActivity extends AppCompatActivity implements CafeAnalogAdapter
         String[] menuItems = getResources().getStringArray(R.array.analog_menu_items);
 
         mTitle = mDrawerTitle = getTitle();
-        mDrawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
-        RecyclerView mDrawerList = (RecyclerView) findViewById(R.id.left_drawer);
-
-        if (mDrawerList == null) {
-            throw new RuntimeException("Stop complaining Android Studio!");
-        }
+        
+        ButterKnife.bind(this);
 
         mDrawerList.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false));
 

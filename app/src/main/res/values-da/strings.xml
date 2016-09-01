@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources xmlns:tools="http://schemas.android.com/tools">
+<resources>
     <string name="app_name">Café Analog</string>
     <string name="closed_analog">Analog er LUKKET</string>
     <string name="error_download">Fejl under download</string>
@@ -23,7 +23,41 @@
         <item>Åbningstider</item>
         <item>Har du gode idéer?</item>
     </string-array>
-    <string name="morning_hours" tools:ignore="TypographyDashes">9:00-11:30</string>
-    <string name="noon_hours" tools:ignore="TypographyDashes">11:30-14:30</string>
-    <string name="afternoon_hours" tools:ignore="TypographyDashes">14:30-17:30</string>
+    <string name="today">I dag</string>
+    <string name="no_shifts_available">Ingen åbningstider tilgængelig</string>
+
+    <string-array name="date_endings">
+        <item>d. 0.</item>
+        <item>d. 1.</item>
+        <item>d. 2.</item>
+        <item>d. 3.</item>
+        <item>d. 4.</item>
+        <item>d. 5.</item>
+        <item>d. 6.</item>
+        <item>d. 7.</item>
+        <item>d. 8.</item>
+        <item>d. 9.</item>
+        <item>d. 10.</item>
+        <item>d. 11.</item>
+        <item>d. 12.</item>
+        <item>d. 13.</item>
+        <item>d. 14.</item>
+        <item>d. 15.</item>
+        <item>d. 16.</item>
+        <item>d. 17.</item>
+        <item>d. 18.</item>
+        <item>d. 19.</item>
+        <item>d. 20.</item>
+        <item>d. 21.</item>
+        <item>d. 22.</item>
+        <item>d. 23.</item>
+        <item>d. 24.</item>
+        <item>d. 25.</item>
+        <item>d. 26.</item>
+        <item>d. 27.</item>
+        <item>d. 28.</item>
+        <item>d. 29.</item>
+        <item>d. 30.</item>
+        <item>d. 31.</item>
+    </string-array>
 </resources>

@@ -23,6 +23,9 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
+import butterknife.BindView;
+import butterknife.ButterKnife;
+
 public class CafeAnalogAdapter extends Adapter<CafeAnalogAdapter.TextViewHolder> {
     private final String[] mMenuItems;
     private final OnItemClickListener mListener;
@@ -61,11 +64,11 @@ public class CafeAnalogAdapter extends Adapter<CafeAnalogAdapter.TextViewHolder>
     }
 
     public class TextViewHolder extends RecyclerView.ViewHolder {
-        private final TextView textView;
+        @BindView(android.R.id.text1) TextView textView;
 
         public TextViewHolder(View itemView) {
             super(itemView);
-            textView = (TextView) itemView.findViewById(android.R.id.text1);
+            ButterKnife.bind(this, itemView);
         }
 
         public void setText(String text) {

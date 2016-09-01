@@ -30,7 +30,10 @@ import android.widget.TextView;
 import java.util.ArrayList;
 import java.util.List;
 
+import butterknife.BindView;
+import butterknife.ButterKnife;
 import dk.cafeanalog.networking.AnalogClient;
+import dk.cafeanalog.views.OpeningHoursView;
 import rx.functions.Action1;
 
 /**
@@ -66,6 +69,10 @@ public class OpeningsFragment extends Fragment {
         mOpenings = args.getParcelableArrayList(OPENING_CONTENT);
     }
 
+    @BindView(R.id.refresher) SwipeRefreshLayout refresher;
+    @BindView(R.id.list) RecyclerView listView;
+    @BindView(R.id.empty_view) TextView emptyView;
+
     @Override
     public View onCreateView(final LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
@@ -77,8 +84,16 @@ public class OpeningsFragment extends Fragment {
 
         View view = inflater.inflate(R.layout.fragment_opening_list, container, false);
 
-        final SwipeRefreshLayout refresher = (SwipeRefreshLayout) view.findViewById(R.id.refresher);
-        final RecyclerView listView = (RecyclerView) view.findViewById(R.id.list);
+        ButterKnife.bind(this, view);
+
+        if (mOpenings.isEmpty()) {
+            emptyView.setVisibility(View.VISIBLE);
+            listView.setVisibility(View.GONE);
+        } else {
+            emptyView.setVisibility(View.GONE);
+            listView.setVisibility(View.VISIBLE);
+        }
+
         refresher.setNestedScrollingEnabled(true);
         refresher.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
@@ -90,6 +105,15 @@ public class OpeningsFragment extends Fragment {
                                 mOpenings.clear();
                                 mOpenings.addAll(dayOfOpenings);
                                 listView.getAdapter().notifyDataSetChanged();
+
+                                if (mOpenings.isEmpty()) {
+                                    emptyView.setVisibility(View.VISIBLE);
+                                    listView.setVisibility(View.GONE);
+                                } else {
+                                    emptyView.setVisibility(View.GONE);
+                                    listView.setVisibility(View.VISIBLE);
+                                }
+
                                 refresher.setRefreshing(false);
                             }
                         },
@@ -116,23 +140,19 @@ public class OpeningsFragment extends Fragment {
             public void onBindViewHolder(DayHolder holder, int position) {
                 DayOfOpenings day = mOpenings.get(position);
 
-                if (day.getMorning()) {
-                    holder.morning.setEnabled(true);
-                } else {
-                    holder.morning.setEnabled(false);
+                int[] buffer = new int[day.getOpenings().size()];
+
+                for (int i = 0; i < buffer.length; i++) {
+                    buffer[i] = day.getOpenings().get(i);
                 }
 
-                if (day.getNoon()) {
-                    holder.noon.setEnabled(true);
-                } else {
-                    holder.noon.setEnabled(false);
+                holder.openingHours.setOpeningHour(buffer.clone());
+
+                for (int i = 0; i < buffer.length; i++) {
+                    buffer[i] = day.getClosings().get(i);
                 }
 
-                if (day.getAfternoon()) {
-                    holder.afternoon.setEnabled(true);
-                } else {
-                    holder.afternoon.setEnabled(false);
-                }
+                holder.openingHours.setClosingHour(buffer);
 
                 holder.dayOfWeek.setText(getDayOfWeek(getActivity(), day.getDayOfWeek()));
             }
@@ -153,15 +173,13 @@ public class OpeningsFragment extends Fragment {
         outState.putParcelableArrayList(OPENING_CONTENT, mOpenings);
     }
 
-    private class DayHolder extends RecyclerView.ViewHolder {
-        private final TextView morning, noon, afternoon, dayOfWeek;
+    class DayHolder extends RecyclerView.ViewHolder {
+        @BindView(R.id.day_of_week) TextView dayOfWeek;
+        @BindView(R.id.opening_hours) OpeningHoursView openingHours;
 
         public DayHolder(View itemView) {
             super(itemView);
-            morning = (TextView) itemView.findViewById(R.id.morning);
-            noon = (TextView) itemView.findViewById(R.id.noon);
-            afternoon = (TextView) itemView.findViewById(R.id.afternoon);
-            dayOfWeek = (TextView) itemView.findViewById(R.id.day_of_week);
+            ButterKnife.bind(this, itemView);
         }
     }
 

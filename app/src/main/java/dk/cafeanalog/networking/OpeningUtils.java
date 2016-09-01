@@ -16,8 +16,6 @@
 
 package dk.cafeanalog.networking;
 
-import android.util.Log;
-
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collections;
@@ -29,83 +27,72 @@ import dk.cafeanalog.DayOfOpenings;
 /*
  * Created by HansP on 11-04-2016.
  */
-public class OpeningUtils {
+class OpeningUtils {
 
 
-        /**
-         * Get the current opening status based on a list of openings
-         * @param openings The list of openings to filter on.
-         * @return An opening representing the current opening. If no such
-         * opening exists, null is returned.
-         */
-        public static Opening getCurrentOpening(List<Opening> openings) {
-            Date now = new Date(System.currentTimeMillis());
-            for (Opening opening : openings) {
-                if (opening.Open.before(now) && opening.Close.after(now)) {
-                    return opening;
-                }
+    /**
+     * Get the current opening status based on a list of openings
+     * @param openings The list of openings to filter on.
+     * @return An opening representing the current opening. If no such
+     * opening exists, null is returned.
+     */
+    public static Opening getCurrentOpening(List<Opening> openings) {
+        Date now = new Date(System.currentTimeMillis());
+        for (Opening opening : openings) {
+            if (opening.Open.before(now) && opening.Close.after(now)) {
+                return opening;
             }
-            return null;
         }
+        return null;
+    }
 
-        /**
-         * Get the openings time for each day based on a list of openings
-         * @param openings The list of openings to transform.
-         * @return A list of DayOfOpenings which for each day represented
-         * contains an entry with the opening hours for that day.
-         */
-        public static List<DayOfOpenings> getDaysOfOpenings(List<Opening> openings) {
+    /**
+     * Get the openings time for each day based on a list of openings
+     * @param openings The list of openings to transform.
+     * @return A list of DayOfOpenings which for each day represented
+     * contains an entry with the opening hours for that day.
+     */
+    public static List<DayOfOpenings> getDaysOfOpenings(List<Opening> openings) {
 
-            Collections.sort(openings);
-            ArrayList<DayOfOpenings> result = new ArrayList<>();
-            Calendar calendar = Calendar.getInstance();
-            for (Opening opening : openings) {
-                calendar.setTime(opening.Open);
-                int dayOfMonth = calendar.get(Calendar.DATE);
-                DayOfOpenings day;
-                boolean retrieved = false;
-                if (!result.isEmpty()) {
-                    day = result.get(result.size() - 1);
-                    if (day.getDayOfMonth() != dayOfMonth) {
-                        day = new DayOfOpenings(dayOfMonth, calendar.get(Calendar.DAY_OF_WEEK));
-                    } else {
-                        retrieved = true;
-                    }
-                } else {
+        Collections.sort(openings);
+        ArrayList<DayOfOpenings> result = new ArrayList<>();
+        Calendar calendar = Calendar.getInstance();
+        for (Opening opening : openings) {
+            calendar.setTime(opening.Open);
+            int dayOfMonth = calendar.get(Calendar.DATE);
+            DayOfOpenings day;
+            boolean retrieved = false;
+            if (!result.isEmpty()) {
+                day = result.get(result.size() - 1);
+                if (day.getDayOfMonth() != dayOfMonth) {
                     day = new DayOfOpenings(dayOfMonth, calendar.get(Calendar.DAY_OF_WEEK));
+                } else {
+                    retrieved = true;
                 }
-
-                int openHour = calendar.get(Calendar.HOUR_OF_DAY);
-                switch (openHour) {
-                    case 9:
-                        day.setMorning();
-                        break;
-                    case 11:
-                        day.setNoon();
-                        break;
-                    case 14:
-                        day.setAfternoon();
-                        break;
-                    default:
-                        Log.d("OpeningsTranslation", "Wrong hour: " + openHour);
-                }
-                calendar.setTime(opening.Close);
-
-                int closeHour = calendar.get(Calendar.HOUR_OF_DAY);
-
-                if (openHour == 9 && closeHour == 14) {
-                    day.setNoon();
-                } else if (openHour == 9 && closeHour == 17) {
-                    day.setNoon();
-                    day.setAfternoon();
-                } else if (openHour == 11 && closeHour == 17) {
-                    day.setAfternoon();
-                }
-
-                if (!retrieved) result.add(day);
+            } else {
+                day = new DayOfOpenings(dayOfMonth, calendar.get(Calendar.DAY_OF_WEEK));
             }
 
-            return result;
+            int openHour = calendar.get(Calendar.HOUR_OF_DAY);
+
+            calendar.setTime(opening.Close);
+
+            int closeHour = calendar.get(Calendar.HOUR_OF_DAY);
+
+            day.addOpening(openHour, closeHour);
+
+            if (!retrieved) result.add(day);
         }
 
+        return result;
+    }
+
+    public static DayOfOpenings getTodaysOpenings(List<Opening> openings) {
+        List<DayOfOpenings> daysOfOpenings = getDaysOfOpenings(openings);
+
+        for (DayOfOpenings day : daysOfOpenings) {
+            if (day.isToday()) return day;
+        }
+        return null;
+    }
 }

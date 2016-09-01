@@ -19,6 +19,11 @@ package dk.cafeanalog;
 import android.os.Parcel;
 import android.os.Parcelable;
 
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.GregorianCalendar;
+import java.util.List;
+
 public class DayOfOpenings implements Parcelable {
     public static final int SUNDAY = 1,
                             MONDAY = 2,
@@ -28,23 +33,35 @@ public class DayOfOpenings implements Parcelable {
                             FRIDAY = 6,
                             SATURDAY = 7;
 
-    private boolean morning, noon, afternoon;
+    private List<Integer> openings, closings;
     private final int dayOfMonth;
     private final int dayOfWeek;
 
     public DayOfOpenings(int dayOfMonth, int dayOfWeek) {
         this.dayOfMonth = dayOfMonth;
         this.dayOfWeek = dayOfWeek;
-        this.morning = false;
-        this.noon = false;
-        this.afternoon = false;
+        openings = new ArrayList<>();
+        closings = new ArrayList<>();
     }
 
 
     private DayOfOpenings(Parcel in) {
-        morning = in.readByte() != 0;
-        noon = in.readByte() != 0;
-        afternoon = in.readByte() != 0;
+        openings = new ArrayList<>();
+        closings = new ArrayList<>();
+
+        int number = in.readInt();
+        int[] buffer = new int[number];
+
+        in.readIntArray(buffer);
+        for (int opening: buffer) {
+            openings.add(opening);
+        }
+
+        in.readIntArray(buffer);
+        for (int closing : buffer) {
+            closings.add(closing);
+        }
+
         dayOfWeek = in.readInt();
         dayOfMonth = in.readInt();
     }
@@ -61,16 +78,56 @@ public class DayOfOpenings implements Parcelable {
         }
     };
 
-    public boolean getMorning() {
-        return morning;
+    /**
+     * Tells whether or not this DayOfOpenings represents today.
+     * Note: This only works when limiting the retrieved days to be within the next month
+     * @return True if this day of opening represents today. False otherwise.
+     */
+    public boolean isToday() {
+        Calendar calendar = GregorianCalendar.getInstance();
+
+        return calendar.get(Calendar.DAY_OF_MONTH) == dayOfMonth;
     }
 
-    public boolean getNoon() {
-        return noon;
+    public List<Integer> getOpenings() {
+        return openings;
     }
 
-    public boolean getAfternoon() {
-        return afternoon;
+    public void addOpening(int opening, int closing) {
+        for (int i = 0; i < openings.size(); i++) {
+            int iOpening = openings.get(i);
+            int iClosing = closings.get(i);
+            // If they overlap in the beginning, replace existing opening with new 'extended' opening
+            if (opening < iOpening && closing < iClosing && closing > iOpening) {
+                openings.set(i, opening);
+                return;
+            }
+
+            // If they overlap in the end, replace existing opening with new 'extended' opening
+            if (opening > iOpening && opening < iClosing && closing > iClosing) {
+                closings.set(i, closing);
+                return;
+            }
+
+            // If the new opening overlaps in both ends, replace with new opening.
+            if (opening < iOpening && closing > iClosing) {
+                openings.set(i, opening);
+                closings.set(i, closing);
+                return;
+            }
+
+            // If the new opening is consumed by existing, just ignore.
+            if (opening > iOpening && closing < iClosing) {
+                return;
+            }
+        }
+        // If none overlap, insert new opening.
+        openings.add(opening);
+        closings.add(closing);
+    }
+
+    public List<Integer> getClosings() {
+        return closings;
     }
 
     public int getDayOfWeek() {
@@ -81,18 +138,6 @@ public class DayOfOpenings implements Parcelable {
         return dayOfMonth;
     }
 
-    public void setMorning() {
-        this.morning = true;
-    }
-
-    public void setNoon() {
-        this.noon = true;
-    }
-
-    public void setAfternoon() {
-        this.afternoon = true;
-    }
-
     @Override
     public int describeContents() {
         return 0;
@@ -100,9 +145,22 @@ public class DayOfOpenings implements Parcelable {
 
     @Override
     public void writeToParcel(Parcel dest, int flags) {
-        dest.writeByte((byte) (morning ? 1 : 0));
-        dest.writeByte((byte) (noon ? 1 : 0));
-        dest.writeByte((byte) (afternoon ? 1 : 0));
+        dest.writeInt(openings.size());
+
+        int[] buffer = new int[openings.size()];
+
+        for(int i = 0; i < buffer.length; i++) {
+            buffer[i] = openings.get(i);
+        }
+
+        dest.writeIntArray(buffer);
+
+        for(int i = 0; i < buffer.length; i++) {
+            buffer[i] = closings.get(i);
+        }
+
+        dest.writeIntArray(buffer);
+
         dest.writeInt(dayOfWeek);
         dest.writeInt(dayOfMonth);
     }

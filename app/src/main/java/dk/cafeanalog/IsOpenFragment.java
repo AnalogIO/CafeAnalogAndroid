@@ -28,6 +28,10 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextSwitcher;
 
+import java.util.List;
+
+import butterknife.BindView;
+import butterknife.ButterKnife;
 import dk.cafeanalog.networking.AnalogClient;
 import dk.cafeanalog.networking.Opening;
 import rx.functions.Action1;
@@ -37,7 +41,9 @@ import rx.functions.Action1;
  */
 public class IsOpenFragment extends Fragment {
     private long mLastTime;
-    private TextSwitcher mOpenSwitcher, mNamesSwitcher;
+    @BindView(R.id.text_view) TextSwitcher mOpenSwitcher;
+    @BindView(R.id.name_view) TextSwitcher mNamesSwitcher;
+    @BindView(R.id.next_opening_view) TextSwitcher mOpeningsSwitcher;
     private boolean mVisible;
 
     @Override
@@ -47,7 +53,19 @@ public class IsOpenFragment extends Fragment {
         // Inflate the layout for this fragment
         View v = inflater.inflate(R.layout.fragment_is_open, container, false);
 
-        mOpenSwitcher = (TextSwitcher) v.findViewById(R.id.text_view);
+        ButterKnife.bind(this, v);
+
+        mOpeningsSwitcher.setFactory(new TextSwitcher.ViewFactory() {
+            @Override
+            public View makeView() {
+                AppCompatTextView textView = new AppCompatTextView(getActivity());
+                textView.setTextSize(TypedValue.COMPLEX_UNIT_SP, 20);
+                textView.setGravity(Gravity.CENTER_HORIZONTAL);
+                return textView;
+            }
+        });
+        mOpeningsSwitcher.setInAnimation(v.getContext(), android.R.anim.slide_in_left);
+        mOpeningsSwitcher.setOutAnimation(v.getContext(), android.R.anim.slide_out_right);
 
         mOpenSwitcher.setFactory(new TextSwitcher.ViewFactory() {
             @Override
@@ -62,7 +80,6 @@ public class IsOpenFragment extends Fragment {
         mOpenSwitcher.setInAnimation(v.getContext(), android.R.anim.slide_in_left);
         mOpenSwitcher.setOutAnimation(v.getContext(), android.R.anim.slide_out_right);
 
-        mNamesSwitcher = (TextSwitcher) v.findViewById(R.id.name_view);
         mNamesSwitcher.setFactory(new TextSwitcher.ViewFactory() {
             @Override
             public View makeView() {
@@ -148,6 +165,47 @@ public class IsOpenFragment extends Fragment {
                         }
                     }
                 });
+
+        AnalogClient.getInstance().getDaysOfOpenings(
+                new Action1<List<DayOfOpenings>>() {
+                    @Override
+                    public void call(final List<DayOfOpenings> dayOfOpeningses) {
+                        mOpeningsSwitcher.postDelayed(new Runnable() {
+                            @Override
+                            public void run() {
+                                if (mVisible) {
+                                    if (dayOfOpeningses.isEmpty()) {
+                                        mOpeningsSwitcher.setText(getString(R.string.no_shifts_available));
+                                    } else {
+                                        String s;
+                                        DayOfOpenings first = dayOfOpeningses.get(0);
+                                        if (first.isToday()) {
+                                            s = getString(R.string.today) + " ";
+                                        } else {
+                                            s = getResources().getStringArray(R.array.date_endings)[first.getDayOfMonth()] + " ";
+                                        }
+
+                                        List<Integer> openings = first.getOpenings();
+                                        List<Integer> closings = first.getClosings();
+
+                                        if (openings.size() > 0) {
+                                            s = s + openings.get(0) + ":00-" + closings.get(0) + ":00";
+                                        }
+
+                                        mOpeningsSwitcher.setText(s);
+                                    }
+                                }
+                            }
+                        }, 200);
+                    }
+                },
+                new Action1<Throwable>() {
+                    @Override
+                    public void call(Throwable throwable) {
+                        // Ignore
+                    }
+                }
+        );
     }
 
     @Override

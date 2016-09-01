@@ -1,0 +1,12 @@
+<dk.cafeanalog.views.OpeningHoursView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    app:border_color="@android:color/white"
+    app:text_color="@android:color/white"
+    app:closed_color="#aa0000"
+    app:open_color="#00aa00"
+    app:show_from_hour="7"
+    app:show_to_hour="17"
+    app:text_distance="5dp"/>

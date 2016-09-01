@@ -18,13 +18,47 @@
 
     <string name="drawer_open">Open navigation drawer</string>
     <string name="drawer_close">Close navigation drawer</string>
-    <string name="morning_hours">9:00–11:30</string>
-    <string name="noon_hours">11:30–14:30</string>
-    <string name="afternoon_hours">14:30–17:30</string>
     <string name="url_app" translatable="false">https://github.com/AnalogIO/CafeAnalogAndroid</string>
+    <string name="today">Today</string>
+    <string name="no_shifts_available">No shifts available</string>
     <string-array name="analog_menu_items">
         <item>Is Analog Open?</item>
         <item>Opening hours</item>
         <item>Wan\'t to help out?</item>
+    </string-array>
+
+    <string-array name="date_endings">
+        <item>0th</item>
+        <item>1st</item>
+        <item>2nd</item>
+        <item>3rd</item>
+        <item>4th</item>
+        <item>5th</item>
+        <item>6th</item>
+        <item>7th</item>
+        <item>8th</item>
+        <item>9th</item>
+        <item>10th</item>
+        <item>11th</item>
+        <item>12th</item>
+        <item>13th</item>
+        <item>14th</item>
+        <item>15th</item>
+        <item>16th</item>
+        <item>17th</item>
+        <item>18th</item>
+        <item>19th</item>
+        <item>20th</item>
+        <item>21st</item>
+        <item>22nd</item>
+        <item>23rd</item>
+        <item>24th</item>
+        <item>25th</item>
+        <item>26th</item>
+        <item>27th</item>
+        <item>28th</item>
+        <item>29th</item>
+        <item>30th</item>
+        <item>31st</item>
     </string-array>
 </resources>

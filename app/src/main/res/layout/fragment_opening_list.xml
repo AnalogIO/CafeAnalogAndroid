@@ -6,12 +6,24 @@
     android:id="@+id/refresher"
     android:layout_width="wrap_content"
     android:layout_height="match_parent" >
-    <android.support.v7.widget.RecyclerView
-        android:id="@+id/list"
-        android:layout_width="wrap_content"
-        android:layout_height="match_parent"
-        android:overScrollMode="ifContentScrolls"
-        tools:context=".OpeningsFragment"
-        tools:listitem="@layout/day" />
-
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:id="@+id/empty_view"
+            android:gravity="center"
+            android:text="@string/no_shifts_available"
+            android:visibility="gone"
+            android:textColor="@color/activeText"/>
+        <android.support.v7.widget.RecyclerView
+            android:id="@+id/list"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:overScrollMode="ifContentScrolls"
+            tools:context=".OpeningsFragment"
+            tools:listitem="@layout/day"
+            />
+    </RelativeLayout>
 </android.support.v4.widget.SwipeRefreshLayout>

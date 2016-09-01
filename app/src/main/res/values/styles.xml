@@ -1,6 +1,8 @@
 <resources>
     <color name="closedColor">#fe22</color>
     <color name="openColor">#f0e0</color>
+    <color name="activeText">@android:color/primary_text_dark</color>
+    <color name="disabledText">@android:color/secondary_text_light</color>
 
     <!-- Base application theme. -->
     <style name="AppTheme" parent="Theme.AppCompat">

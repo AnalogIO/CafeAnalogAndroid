@@ -18,4 +18,11 @@
         android:layout_centerHorizontal="true"
         android:id="@+id/name_view" />
 
+    <TextSwitcher
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/name_view"
+        android:layout_centerHorizontal="true"
+        android:id="@+id/next_opening_view" />
+
 </RelativeLayout>

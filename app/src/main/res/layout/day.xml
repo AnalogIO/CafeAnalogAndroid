@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:orientation="vertical"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_gravity="center"
     android:paddingTop="5dp"
     android:paddingBottom="5dp"
-    android:layout_margin="15dp" >
+    android:layout_margin="15dp">
 
     <TextView
         android:id="@+id/day_of_week"
@@ -17,32 +17,15 @@
         style="@style/WeekDayView"
         tools:text="Monday" />
 
-    <LinearLayout
-        android:layout_gravity="center"
-        android:layout_width="match_parent"
+    <dk.cafeanalog.views.OpeningHoursView
+        android:id="@+id/opening_hours"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        style="@style/SmallMargin" >
-
-        <TextView
-            android:id="@+id/morning"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="2"
-            style="@style/BoxedWrapper"
-            android:text="@string/morning_hours"/>
-        <TextView
-            android:id="@+id/noon"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="2"
-            style="@style/BoxedWrapper"
-            android:text="@string/noon_hours"/>
-        <TextView
-            android:id="@+id/afternoon"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="2"
-            style="@style/BoxedWrapper"
-            android:text="@string/afternoon_hours" />
-    </LinearLayout>
+        android:layout_gravity="center_horizontal"
+        app:text_color="@android:color/white"
+        app:border_color="@android:color/white"
+        app:closed_color="#aa0000"
+        app:text_distance="2dp"
+        app:show_from_hour="8"
+        app:show_to_hour="16"/>
 </LinearLayout>

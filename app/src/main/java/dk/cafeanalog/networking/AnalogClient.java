@@ -61,6 +61,20 @@ public class AnalogClient {
                 .subscribe(success, error);
     }
 
+    public void getTodaysOpenings(final Action1<DayOfOpenings> success, Action1<Throwable> error) {
+        analogService.getOpenings()
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread(), true)
+                .subscribe(
+                        new Action1<List<Opening>>() {
+                            @Override
+                            public void call(List<Opening> openings) {
+                                success.call(OpeningUtils.getTodaysOpenings(openings));
+                            }
+                        },
+                        error);
+    }
+
     public void getCurrentOpening(final Action1<Opening> success, Action1<Throwable> error) {
         analogService.getOpenings()
                 .subscribeOn(Schedulers.io())
